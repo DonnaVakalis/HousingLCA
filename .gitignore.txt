@@ -13,9 +13,11 @@
 *.tar
 *.zip
 
-# Spreadsheets #
+# Raw excel and stata data #
 ################
 *.csv
+*.dta
+*.xlsx
 
 # Logs and databases #
 ######################

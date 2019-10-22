@@ -19,10 +19,11 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 
 ```{r} 
-##### PREP:
   ##### Install and load libraries
-
-
+library(readstata13) #to read in old stata file(s) with thermal and temp data
+library(readr) #to read csv files
+library(tidyverse) #for everything 
+library(dplyr) #for everything 
 ```
 
 ```{r}
@@ -32,6 +33,11 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
     # 3) Categorize outdoor and indoor data into pre and post  
     # 4) Make a single dataframe with columns: pre/post, outdoor temp, indoor thermal condition, building, suite*, date* 
     #   *suite and date will not be used in analysis but will be useful for quick checks and other possible investigations of interest e.g., matching survey data with thermal conditions 
+
+# 1) Get outdoor temp by date:
+
+
+
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
