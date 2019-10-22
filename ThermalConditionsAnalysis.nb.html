@@ -231,8 +231,35 @@ summary {
 <p>Try executing this chunk by clicking the <em>Run</em> button within the chunk or by placing your cursor inside it and pressing <em>Ctrl+Shift+Enter</em>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChjYXJzKVxuYGBgIn0= -->
-<pre class="r"><code>plot(cars)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyMjIyMgUFJFLUFNQkxFOiBcbiAgIyMjIyMgU2V0dXA6IHByZS0gKGNvbmRpdGlvbiAwKSBhbmQgcG9zdC1yZXRyb2ZpdCAoY29uZGl0aW9uIDEpIGluZG9vciB0aGVybWFsIGNvbWZvcnQgYXJlIGVhY2ggZGVwZW5kZW50IG9uIHRoZSBpbmRlcGVuZGVudCB2YXJpYWJsZSBvdXRkb29yIHRlbXBlcmF0dXJlLCBmb3IgZWFjaCBidWlsZGluZy4gXG4gICMjIyMjIEdvYWw6IFxuICAgICMgMSkgd2Ugd2FudCB0byBrbm93IGlmIHByZS0gYW5kIHBvc3QtcmV0cm9maXQgKGNvbmRpdGlvbiAwIGFuZCAxKSBhcmUgc2lnbmlmaWNhbnRseSBkaWZmZXJlbnQgZnJvbSBvbmUgYW5vdGhlclxuICAgICMgMikgd2Ugd2FudCB0byB2aXN1YWxpemUgZWFjaCBvZiB0aGUgcHJlLSBhbmQgcG9zdC1yZXRyb2ZpdCB0aGVybWFsIGNvbWZvcnQgKG9uIHkgYXhpcykgdmVyc3VzIG91dGRvb3IgdGVtcCAoeCBheGlzKSBvbiBzYW1lIGdyYXBoXG4gICMjIyMjIEFwcHJvYWNoOiBoYXZlIGEgZ2xvYmFsIG1vZGVsIHRoYXQgY29kZXMgZm9yIGNvbmRpdGlvbiAwIGFuZCBjb25kaXRpb24gMSBhcyB2YXJpYWJsZXMsIGkuZS4sICdkdW1teSB2YXJpYWJsZScsIGFsd2F5cyBpbiByZXNwb25zZSB0byBvdXRkb29yIHRlbXAgdmFyaWFibGU7IHRoZW4gbG9vayBmb3IgJ2VmZmVjdCBzaXplJyBvZiBjb25kaXRpb24gMCB2ZXJzdXMgY29uZGl0aW9uIDEuLi4gXG4gICAgIyAzKSByZXBlYXQgc3RlcHMgMSBhbmQgMiBmb3IgZWFjaCBidWlsZGluZzogYmVjYXVzZSB0aGV5IGhhZCBkaWZmZXJlbnQgcmV0cm9maXQgYWN0aW9ucyBhbmQgb3RoZXIgdW5tZWFzdXJlZCBkaWZmZXJlbmNlc1xuYGBgIn0= -->
+<pre class="r"><code>##### PRE-AMBLE: 
+  ##### Setup: pre- (condition 0) and post-retrofit (condition 1) indoor thermal comfort are each dependent on the independent variable outdoor temperature, for each building. 
+  ##### Goal: 
+    # 1) we want to know if pre- and post-retrofit (condition 0 and 1) are significantly different from one another
+    # 2) we want to visualize each of the pre- and post-retrofit thermal comfort (on y axis) versus outdoor temp (x axis) on same graph
+  ##### Approach: have a global model that codes for condition 0 and condition 1 as variables, i.e., 'dummy variable', always in response to outdoor temp variable; then look for 'effect size' of condition 0 versus condition 1... 
+    # 3) repeat steps 1 and 2 for each building: because they had different retrofit actions and other unmeasured differences</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyMjIyMgUFJFUDpcbiAgIyMjIyMgSW5zdGFsbCBhbmQgbG9hZCBsaWJyYXJpZXNcblxuXG5gYGAifQ== -->
+<pre class="r"><code>##### PREP:
+  ##### Install and load libraries
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAjIyMjIyBHZXQgZGF0YSBhbmQgY3JlYXRlIGRhdGFmcmFtZVxuICAgICMgMSkgR2V0IG91dGRvb3IgdGVtcCBieSBkYXRlXG4gICAgIyAyKSBHZXQgaW5kb29yIHRoZXJtYWwgY29tZm9ydCBieSBkYXRlIFxuICAgICMgMykgQ2F0ZWdvcml6ZSBvdXRkb29yIGFuZCBpbmRvb3IgZGF0YSBpbnRvIHByZSBhbmQgcG9zdCAgXG4gICAgIyA0KSBNYWtlIGEgc2luZ2xlIGRhdGFmcmFtZSB3aXRoIGNvbHVtbnM6IHByZS9wb3N0LCBvdXRkb29yIHRlbXAsIGluZG9vciB0aGVybWFsIGNvbmRpdGlvbiwgYnVpbGRpbmcsIHN1aXRlKiwgZGF0ZSogXG4gICAgIyAgICpzdWl0ZSBhbmQgZGF0ZSB3aWxsIG5vdCBiZSB1c2VkIGluIGFuYWx5c2lzIGJ1dCB3aWxsIGJlIHVzZWZ1bCBmb3IgcXVpY2sgY2hlY2tzIGFuZCBvdGhlciBwb3NzaWJsZSBpbnZlc3RpZ2F0aW9ucyBvZiBpbnRlcmVzdCBlLmcuLCBtYXRjaGluZyBzdXJ2ZXkgZGF0YSB3aXRoIHRoZXJtYWwgY29uZGl0aW9ucyBcbmBgYCJ9 -->
+<pre class="r"><code>  ##### Get data and create dataframe
+    # 1) Get outdoor temp by date
+    # 2) Get indoor thermal comfort by date 
+    # 3) Categorize outdoor and indoor data into pre and post  
+    # 4) Make a single dataframe with columns: pre/post, outdoor temp, indoor thermal condition, building, suite*, date* 
+    #   *suite and date will not be used in analysis but will be useful for quick checks and other possible investigations of interest e.g., matching survey data with thermal conditions </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -241,7 +268,7 @@ summary {
 <p>The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.</p>
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpUaGlzIGlzIGFuIFtSIE1hcmtkb3duXShodHRwOi8vcm1hcmtkb3duLnJzdHVkaW8uY29tKSBOb3RlYm9vay4gV2hlbiB5b3UgZXhlY3V0ZSBjb2RlIHdpdGhpbiB0aGUgbm90ZWJvb2ssIHRoZSByZXN1bHRzIGFwcGVhciBiZW5lYXRoIHRoZSBjb2RlLiANCg0KVHJ5IGV4ZWN1dGluZyB0aGlzIGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqUnVuKiBidXR0b24gd2l0aGluIHRoZSBjaHVuayBvciBieSBwbGFjaW5nIHlvdXIgY3Vyc29yIGluc2lkZSBpdCBhbmQgcHJlc3NpbmcgKkN0cmwrU2hpZnQrRW50ZXIqLiANCg0KYGBge3J9DQpwbG90KGNhcnMpDQpgYGANCg0KQWRkIGEgbmV3IGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqSW5zZXJ0IENodW5rKiBidXR0b24gb24gdGhlIHRvb2xiYXIgb3IgYnkgcHJlc3NpbmcgKkN0cmwrQWx0K0kqLg0KDQpXaGVuIHlvdSBzYXZlIHRoZSBub3RlYm9vaywgYW4gSFRNTCBmaWxlIGNvbnRhaW5pbmcgdGhlIGNvZGUgYW5kIG91dHB1dCB3aWxsIGJlIHNhdmVkIGFsb25nc2lkZSBpdCAoY2xpY2sgdGhlICpQcmV2aWV3KiBidXR0b24gb3IgcHJlc3MgKkN0cmwrU2hpZnQrSyogdG8gcHJldmlldyB0aGUgSFRNTCBmaWxlKS4NCg0KVGhlIHByZXZpZXcgc2hvd3MgeW91IGEgcmVuZGVyZWQgSFRNTCBjb3B5IG9mIHRoZSBjb250ZW50cyBvZiB0aGUgZWRpdG9yLiBDb25zZXF1ZW50bHksIHVubGlrZSAqS25pdCosICpQcmV2aWV3KiBkb2VzIG5vdCBydW4gYW55IFIgY29kZSBjaHVua3MuIEluc3RlYWQsIHRoZSBvdXRwdXQgb2YgdGhlIGNodW5rIHdoZW4gaXQgd2FzIGxhc3QgcnVuIGluIHRoZSBlZGl0b3IgaXMgZGlzcGxheWVkLg0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpUaGlzIGlzIGFuIFtSIE1hcmtkb3duXShodHRwOi8vcm1hcmtkb3duLnJzdHVkaW8uY29tKSBOb3RlYm9vay4gV2hlbiB5b3UgZXhlY3V0ZSBjb2RlIHdpdGhpbiB0aGUgbm90ZWJvb2ssIHRoZSByZXN1bHRzIGFwcGVhciBiZW5lYXRoIHRoZSBjb2RlLiANCg0KVHJ5IGV4ZWN1dGluZyB0aGlzIGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqUnVuKiBidXR0b24gd2l0aGluIHRoZSBjaHVuayBvciBieSBwbGFjaW5nIHlvdXIgY3Vyc29yIGluc2lkZSBpdCBhbmQgcHJlc3NpbmcgKkN0cmwrU2hpZnQrRW50ZXIqLiANCg0KYGBge3J9DQojIyMjIyBQUkUtQU1CTEU6IA0KICAjIyMjIyBTZXR1cDogcHJlLSAoY29uZGl0aW9uIDApIGFuZCBwb3N0LXJldHJvZml0IChjb25kaXRpb24gMSkgaW5kb29yIHRoZXJtYWwgY29tZm9ydCBhcmUgZWFjaCBkZXBlbmRlbnQgb24gdGhlIGluZGVwZW5kZW50IHZhcmlhYmxlIG91dGRvb3IgdGVtcGVyYXR1cmUsIGZvciBlYWNoIGJ1aWxkaW5nLiANCiAgIyMjIyMgR29hbDogDQogICAgIyAxKSB3ZSB3YW50IHRvIGtub3cgaWYgcHJlLSBhbmQgcG9zdC1yZXRyb2ZpdCAoY29uZGl0aW9uIDAgYW5kIDEpIGFyZSBzaWduaWZpY2FudGx5IGRpZmZlcmVudCBmcm9tIG9uZSBhbm90aGVyDQogICAgIyAyKSB3ZSB3YW50IHRvIHZpc3VhbGl6ZSBlYWNoIG9mIHRoZSBwcmUtIGFuZCBwb3N0LXJldHJvZml0IHRoZXJtYWwgY29tZm9ydCAob24geSBheGlzKSB2ZXJzdXMgb3V0ZG9vciB0ZW1wICh4IGF4aXMpIG9uIHNhbWUgZ3JhcGgNCiAgIyMjIyMgQXBwcm9hY2g6IGhhdmUgYSBnbG9iYWwgbW9kZWwgdGhhdCBjb2RlcyBmb3IgY29uZGl0aW9uIDAgYW5kIGNvbmRpdGlvbiAxIGFzIHZhcmlhYmxlcywgaS5lLiwgJ2R1bW15IHZhcmlhYmxlJywgYWx3YXlzIGluIHJlc3BvbnNlIHRvIG91dGRvb3IgdGVtcCB2YXJpYWJsZTsgdGhlbiBsb29rIGZvciAnZWZmZWN0IHNpemUnIG9mIGNvbmRpdGlvbiAwIHZlcnN1cyBjb25kaXRpb24gMS4uLiANCiAgICAjIDMpIHJlcGVhdCBzdGVwcyAxIGFuZCAyIGZvciBlYWNoIGJ1aWxkaW5nOiBiZWNhdXNlIHRoZXkgaGFkIGRpZmZlcmVudCByZXRyb2ZpdCBhY3Rpb25zIGFuZCBvdGhlciB1bm1lYXN1cmVkIGRpZmZlcmVuY2VzDQpgYGANCg0KDQpgYGB7cn0gDQojIyMjIyBQUkVQOg0KICAjIyMjIyBJbnN0YWxsIGFuZCBsb2FkIGxpYnJhcmllcw0KDQoNCmBgYA0KDQpgYGB7cn0NCiAgIyMjIyMgR2V0IGRhdGEgYW5kIGNyZWF0ZSBkYXRhZnJhbWUNCiAgICAjIDEpIEdldCBvdXRkb29yIHRlbXAgYnkgZGF0ZQ0KICAgICMgMikgR2V0IGluZG9vciB0aGVybWFsIGNvbWZvcnQgYnkgZGF0ZSANCiAgICAjIDMpIENhdGVnb3JpemUgb3V0ZG9vciBhbmQgaW5kb29yIGRhdGEgaW50byBwcmUgYW5kIHBvc3QgIA0KICAgICMgNCkgTWFrZSBhIHNpbmdsZSBkYXRhZnJhbWUgd2l0aCBjb2x1bW5zOiBwcmUvcG9zdCwgb3V0ZG9vciB0ZW1wLCBpbmRvb3IgdGhlcm1hbCBjb25kaXRpb24sIGJ1aWxkaW5nLCBzdWl0ZSosIGRhdGUqIA0KICAgICMgICAqc3VpdGUgYW5kIGRhdGUgd2lsbCBub3QgYmUgdXNlZCBpbiBhbmFseXNpcyBidXQgd2lsbCBiZSB1c2VmdWwgZm9yIHF1aWNrIGNoZWNrcyBhbmQgb3RoZXIgcG9zc2libGUgaW52ZXN0aWdhdGlvbnMgb2YgaW50ZXJlc3QgZS5nLiwgbWF0Y2hpbmcgc3VydmV5IGRhdGEgd2l0aCB0aGVybWFsIGNvbmRpdGlvbnMgDQpgYGANCg0KQWRkIGEgbmV3IGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqSW5zZXJ0IENodW5rKiBidXR0b24gb24gdGhlIHRvb2xiYXIgb3IgYnkgcHJlc3NpbmcgKkN0cmwrQWx0K0kqLg0KDQpXaGVuIHlvdSBzYXZlIHRoZSBub3RlYm9vaywgYW4gSFRNTCBmaWxlIGNvbnRhaW5pbmcgdGhlIGNvZGUgYW5kIG91dHB1dCB3aWxsIGJlIHNhdmVkIGFsb25nc2lkZSBpdCAoY2xpY2sgdGhlICpQcmV2aWV3KiBidXR0b24gb3IgcHJlc3MgKkN0cmwrU2hpZnQrSyogdG8gcHJldmlldyB0aGUgSFRNTCBmaWxlKS4NCg0KVGhlIHByZXZpZXcgc2hvd3MgeW91IGEgcmVuZGVyZWQgSFRNTCBjb3B5IG9mIHRoZSBjb250ZW50cyBvZiB0aGUgZWRpdG9yLiBDb25zZXF1ZW50bHksIHVubGlrZSAqS25pdCosICpQcmV2aWV3KiBkb2VzIG5vdCBydW4gYW55IFIgY29kZSBjaHVua3MuIEluc3RlYWQsIHRoZSBvdXRwdXQgb2YgdGhlIGNodW5rIHdoZW4gaXQgd2FzIGxhc3QgcnVuIGluIHRoZSBlZGl0b3IgaXMgZGlzcGxheWVkLg0K</div>
 
 
 
