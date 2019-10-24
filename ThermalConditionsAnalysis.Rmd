@@ -23,11 +23,13 @@ output: html_notebook
 
 
 library(readstata13) #to read in old stata file(s) with thermal and temp data
-library(readr) #to read csv files
+library(readr) #to read csv weather files
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
-library (lubridate) # foraligning dates
+library (lubridate) # for aligning dates
 ```
+
+
 
 ```{r}
 ##### PREP RAW DATA:
@@ -42,16 +44,28 @@ library (lubridate) # foraligning dates
 
 
 ##### Step 1) Get outdoor temp by date:
-WeatherDataFiles <-
+WeatherRaw <-
     list.files("./RawData_doNotUpload/", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
     lapply(
         read_csv, 
         skip=24, # Skip meta-data rows
         col_types = '_iii_____d_________________')%>% #choose only columns of interest
     bind_rows()
+# Match "week" i.d. from sensor data to averages of weather station data
+  # Start date of "week" is x-3 (e.g., week 2873 centered at 2015/04/05 starts on 04/02)
+  # Calculate mean for each "week", beginning on corresponding "start date"+6 inclusive
+WeatherCleaned <-
+    WeatherRaw %>%
+    rowwise() %>%
+    mutate(
+        date_merged = as.Date(
+            paste(Year,Month,Day, sep = "-"))) %>%
+    select(date_merged,`Mean Temp (°C)`)
 
-
-
+#assign each date to a 'week', then group by week and average
+    
+    
+    
 
 ##### Step 2) Get indoor conditions by date and building into a dataframe:
 SensorRaw <- 
