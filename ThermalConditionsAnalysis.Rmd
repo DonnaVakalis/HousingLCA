@@ -25,45 +25,490 @@ library(readr) #to read csv weather files
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
 library (lubridate) # for aligning dates
-library(readxl)
+library(ggplot2) # for plotting
+library(readxl) # for excel survey data files
+library(glmmTMB) # for mixed effects model
+#library (betareg) # for betaregression of upper_com ~ temperature and retrofit
+#library(GGally) # for two-limit obit model
+#library(VGAM) # for two-limit obit model
+#library(zoib) # for zoib model, note: first needed to install JAGS-4.x from https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/
+library(mgcv) # for mixed effects modelling with beta regression
+library(betareg) # same as above
+
+library(lme4)
+
 
 ```
 
+```{r}
+##### GLOBAL VARIABLES e.g., colours
+
+colour1 = "#93C47D" # green 
+colour2 = "#F6B26B" # orange
+```
 
 
 ```{r}
-##### PREP RAW DATA:
+##### IEQ DATA PREP ============
 ##### Outline of steps in this chunk of code:
     # 1)  Get indoor thermal comfort by date...
     # 2)  Get outdoor temp by date & 
     # 3)  Reconcile way of dating indoor with corresponding outdoor temps
     # 4)  Add  "pre"/"post" within a single dataframe with columns: pre/post, outdoor temp, indoor thermal condition, building, suite*, date* 
     # ...Suite and date will be useful for quick checks and other possible investigations of interest e.g., matching survey data with thermal conditions 
-    # 5)  Deal with survey data next 
  
 
 ##### Step 1) Get indoor conditions by date and building into a dataframe:
-SensorRaw <- 
-    read.dta13(choose.files()) %>% # Load LTcomplete_weekly_collapsed.dta, which should be in a private folder i.e., NOT PUBLIC on Github
-    mutate( 
-        murb = substr(locID,1,3)) # Create a column for building
- 
-Check <- # Data Quick Check: for each building of interest... 
-    SensorRaw %>%
+Day_Sensor <-
+    read.dta13(choose.files()) %>% # Choose LTcomplete_weekly_collapsed-daily.dta from a NON-PUBLIC folder
+    mutate(
+        murb = substr(locID,1,3)) %>% # create a column for buildingID
+    rename(
+        tmp_in = tmp) %>% # distinguish between indoor and outdoor temperature
+    select(
+        murb,locID,date,tmp_in,com_lower,com_upper,mrt,rhm) # select only information needed for next steps 
+
+Check_N_Observations <- # Data Quick Check: for each building of interest... 
+    Day_Sensor %>%
     filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
     group_by(murb) %>%
     summarize(n_obs_allData = sum(!is.na(murb)),# how many measurements?
         n_obs_pre = sum(date %within% interval(ymd("2015-04-01"),ymd("2016-04-01"))), #Pre-retrofit
         n_obs_post = sum(date %within% interval(ymd("2017-02-15"),ymd("2018-02-15"))), #Post-retrofit
         n_suites = n_distinct(locID), # across how many suites?
-        n_obs_pre_suite_pre = sum(n_obs_pre/n_suites), # data points per suite pre
-        n_obs_pre_suite_post = sum(n_obs_post/n_suites)) # data points per suite pre
+        n_obs_persuite_pre = sum(n_obs_pre/n_suites), # data points per suite pre
+        n_obs_persuite_post = sum(n_obs_post/n_suites)) # data points per suite pre
 
-SensorCleaned <- # Put the sensor data relevant columns into a new dataframe
-    SensorRaw %>%
-    rename(week_midpt = date, tmp_in_wk = tmp, weekID = week) %>% # distinguish that date is midpoint of a weekly average 
-    select(murb,locID,weekID,week_midpt,tmp_in_wk,com_lower,com_upper) 
 
+
+##### Step 2) Get outdoor temp files into one dataframe by date:
+Day_Weather <-
+    list.files("./RawData_doNotUpload/weather1", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
+    lapply(
+        read_csv, 
+        skip=24, # Skip meta-data rows
+        col_types = '_iii_____d_________________') %>% #choose only columns of interest
+    bind_rows() 
+Day_Weather <-  #this is done in two steps because some years of weather have different underlying characteristic files
+    list.files("./RawData_doNotUpload/weather2", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
+    lapply(
+        read_csv, 
+        col_types = '_____iii_____d_________________') %>% #choose only columns of interest
+    bind_rows(.,Day_Weather)  
+
+Day_Weather <-
+    Day_Weather %>%
+    rowwise() %>%
+    mutate(
+        date = as.Date(
+            paste(Year,Month,Day, sep = "-"))) %>%
+    select(date,`Mean Temp (°C)`) %>%
+    rename(tmp_out =`Mean Temp (°C)`)    # rename to differentiate between indoor/outdoor 
+
+
+
+
+##### Steps 3 & 4) Merge outdoor and indoor data and categorize into pre and post: 
+    #  n.b. Pre-retrofit monitoring: weeks 2872 to 2924 (April 1 2015 - April 1 2016)
+    #  n.b. Post-retrofit monitoring: weeks 2970 to 3021, (February 15 2017-February 15 2018)
+DF_SensorNWeather <- 
+    merge(Day_Weather, Day_Sensor,by="date", all.x = TRUE, all.y = TRUE) %>% # outdoor and indoor data into one dataframe
+    mutate(
+        retrofit_yes = case_when (date %within% interval(ymd("2015-04-01"),ymd("2016-03-30"))~ FALSE,
+                                  date %within% interval(ymd("2017-02-01"),ymd("2018-01-31"))~ TRUE,
+                                  TRUE ~ NA)) %>% #default to NA if date outside the relevant intervals  
+    drop_na(retrofit_yes) 
+  
+Check_Pre_Post_count<- # check that we have 365 days per suite of data for appropriate time period
+  DF_SensorNWeather %>%
+    filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+    group_by(murb,retrofit_yes) %>%
+    summarise(n_days_recorded= n(), start=min(date), end=max(date), n_suites = n_distinct(locID), n_obs_per_suite = n_days_recorded/n_suites )
+  
+  
+##### END OF IEQ DATA PREP
+```
+
+```{r}
+##### IEQ  MODEL PREP  ============
+##### Outline of steps in this chunk of code:
+    # 5) Group data by building 
+    # 6) Visualize dataset (look for shape of distribution) 
+  
+
+##### Step 5)  
+
+# Separate each murb into its own dataframe, for using as model input later:
+list_input_mr <- list() #Create a list in which I will save all six of the dfs
+for (i in 1:7) {
+    assign(paste0("mr",i), myvalues[i]) # labels for "mr1", "mr2" etc.
+    df_murb<-DF_SensorNWeather %>%
+        filter(murb==myvalues[i])  #copy all the data for a given building
+    list_input_mr[[i]] <- df_murb
+}
+
+##### Step 6)  
+
+# Quick visualization of the distirbution of upper_com values:
+DF_SensorNWeather%>%  
+      ggplot(aes(x=com_upper,fill=retrofit_yes)) +
+      scale_color_manual(values = c(colour2, colour1)) +
+      scale_fill_manual(values = c(colour2, colour1)) +
+      geom_histogram(position="dodge", binwidth = 0.05) + # Note: lots of values at truncated edges {0,1} 
+      facet_wrap(~murb, nrow = 1) +
+      theme(aspect.ratio = 0.8) 
+
+ 
+# N.B. Based on visualization in step 6, and experimental design, likely a mixed model with a 'special' link function (e.g., not gaussian) will fit best
+
+##### END OF IEQ MODEL PREP
+```
+
+
+
+```{r}
+#####  SIMPLE REGRESSION MODEL MIXED EFFECTS e.g., RANDOM INTERCEPT  ============
+
+# example from https://ourcodingclub.github.io/2017/03/15/mixed-models.html#second 
+# mixed.lmer2 <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|sample), data = dragons)   
+
+# RANDOM INTERCEPT MODELS
+
+mixed.lmer1 <- lmer(com_upper ~ tmp_out + retrofit_yes + (1|locID), data=list_input_mr[[1]])
+summary(mixed.lmer1) #Note locID explains 0.0599/(0.0599+0.0953) = 38.5% of variation that's "leftover" after the variance explained by our fixed effects. 
+
+list_mm.lmer1_mr <- list() #Create a list in which I will save all models go (one per building)
+list_mm.lmer1.summary_mr <- list() #Create a list for each summary of model
+for (i in 1:7) {
+    model<- lmer(com_upper ~ tmp_out + retrofit_yes + (1|locID), data=list_input_mr[[i]])
+    list_mm.lmer1_mr[[i]] <- model 
+    
+}
+
+ 
+
+# VISUALIZE
+(mm_plot <- ggplot(inputData_mr1, aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
+      facet_wrap(~locID, nrow=2) +   # a panel for each suite
+      geom_point(alpha = 0.2) +
+      theme_classic() +
+      geom_line(data = cbind(inputData_mr1, pred = predict(mixed.lmer1)), aes(y = pred), size = 1) +  # adding predicted line from mixed model 
+      theme(legend.position = "bottom") +   
+      scale_color_manual(values = c(colour2, colour1))+
+      ylim(0,1)
+)
+
+ 
+
+# note adding a RANDOM SLOPE fails to converge
+# mixed.lmer2 <- lmer(com_upper ~ tmp_out + retrofit_yes + (1 + tmp_out|locID), data= inputData_mr1)
+# summary(mixed.lmer2)
+
+```
+
+
+```{r}
+
+```
+
+
+
+```{r}
+
+
+#####  MODEL COMPARISON AND EVALUATION ============
+      
+# Check residuals if we used a lm   
+model_check <- lm(DF_SensorNWeather$com_upper ~ DF_SensorNWeather$tmp_out + DF_SensorNWeather$retrofit_yes) # x is tmp_out and y is com_upper
+qqnorm(model_check$residuals)
+qqline(model_check$residuals)
+hist(model_check$residuals) ## problem is that residuals are not normally distributed
+
+
+# Check whether 
+qqnorm(resid(mixed.lmer1))
+qqline(resid(mixed.lmer1)) # doesn't look great at edges... change to a quasi-binomial? 
+
+```
+
+
+
+
+```{r}
+
+##### BETA REGRESSION MODEL MIXED EFFECTS ============================
+ 
+
+## Simulate some beta data...
+set.seed(3);n<-400
+dat <- gamSim(1,n=n)
+mu <- binomial()$linkinv(dat$f/4-2)
+phi <- .5
+a <- mu*phi;b <- phi - a;
+dat$y <- rbeta(n,a,b) 
+
+#beta_model_mr1 <- gam(y~s(x0)+s(x1)+s(x2)+s(x3),family=betar(link="logit"),data=dat)
+inputData_mr1 <-
+    DF_SensorNWeather %>%
+        filter(murb == "mr1")  
+model_beta_mr1 <- gam(inputData_mr1$com_upper ~ s(inputData_mr1$retrofit_yes) + s(inputData_mr1$tmp_out) + s(inputData_mr1$locID), family=betar(link="logit"))
+summary(model_beta_mr1)
+
+bm
+plot(bm,pages=1)
+
+
+
+
+#e.g., glmmTMB(y ~ 1 + (1|pond), df, family=list(family="beta",link="logit"))
+# glmmTMB is Generalized Linear Mixed Models using Template Model Builder
+
+inputData <- 
+    DF_SensorNWeather%>%
+        mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
+           trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
+        subset(murb=="mr1")
+
+glmmTMB(trans_com ~ tmp_out + retrofit_yes + (1|locID), inputData,
+            family= beta_family(link = "logit"))
+        
+        
+        glmmTMB(formula, data = NULL, family = gaussian(), ziformula = ~0,
+dispformula = ~1, weights = NULL, offset = NULL,
+contrasts = NULL, na.action = na.fail, se = TRUE,
+verbose = FALSE, doFit = TRUE, control = glmmTMBControl(),
+REML = FALSE)
+
+ 
+
+```
+
+
+```{r}
+##### TWO-LIMIT OBIT MODEL ============================
+
+inputData <- 
+    DF_SensorNWeather%>% 
+        subset(murb=="mr1")
+inputData_pre <- 
+    DF_SensorNWeather%>% 
+        subset(murb=="mr1") %>%
+        subset(retrofit_yes==FALSE)
+inputData_post <- 
+    DF_SensorNWeather%>% 
+        subset(murb=="mr1") %>%
+        subset(retrofit_yes==TRUE)
+
+summary(tobitMod <- vglm(com_upper ~ tmp_out + retrofit_yes, tobit(Lower=0, Upper = 1), data = DF_SensorNWeather))
+
+tobit_fit_pre <-vglm(com_upper ~ tmp_out, tobit(Lower=0, Upper = 1), data = inputData_pre) 
+tobit_fit_post <-vglm(com_upper ~ tmp_out, tobit(Lower=0, Upper = 1), data = inputData_post)
+
+ggplot() + 
+    geom_point(data = inputData, size = 0.1, alpha = 0.5, aes(x = tmp_out, 
+                                                              y = com_upper, 
+                                                              color=retrofit_yes)) + 
+    geom_line(data = inputData_pre, aes(x = tmp_out, 
+                                        y = predict(tobit_fit_pre, type="response"), 
+                                        colour = "Pre-retrofit")) + 
+    geom_line(data = inputData_post, aes(x = tmp_out, 
+                                        y = predict(tobit_fit_post, type="response"), 
+                                        colour = "Post-retrofit")) +
+    coord_cartesian(ylim=c(0, 1))
+
+```
+
+
+```{r}
+##### OLD BETA REGRESSION MODEL FIXED ============================
+
+
+# Try a Beta Regression Model *must transform to make com_upper ~ 0,1) open interval
+inputData <- 
+    DF_SensorNWeather%>%
+        mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
+           trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
+        subset(murb=="mr1")
+inputData_pre <- 
+    DF_SensorNWeather%>%
+        mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
+           trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
+        subset(murb=="mr1") %>%
+        subset(retrofit_yes==FALSE)
+inputData_post <- 
+    DF_SensorNWeather%>%
+        mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
+           trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
+        subset(murb=="mr1") %>%
+        subset(retrofit_yes==TRUE)
+
+summary(inputData_post)
+summary(inputData_pre)
+
+betaMod_pre <- betareg(trans_com ~ tmp_out, data = inputData_pre)
+betaMod_post <- betareg(trans_com ~ tmp_out, data = inputData_post) 
+
+summary(betaMod_pre)
+summary(betaMod_post)
+
+
+ggplot(inputData, aes(x = tmp_out, y = trans_com)) +
+    geom_point(size = 0.1, alpha = 0.5, aes(color=factor(retrofit_yes))) +
+    geom_line(aes(y = predict(betaMod_pre, inputData),
+                  colour = "pre", linetype = "pre")) +
+    geom_line(aes(y = predict(betaMod_post, inputData),
+                  colour = "post", linetype = "post")) + 
+    scale_colour_manual("", values = c("dark red", "dark blue","red","blue"))  +
+    scale_linetype_manual("", values = c("solid", "dashed")) # +
+    #theme_bw()
+
+```
+
+
+```{r}
+##### VOIB MODEL ============================
+inputData <- 
+    DF_SensorNWeather%>%
+        subset(murb=="mr1")
+
+model <- zoib(com_upper ~ tmp_out + retrofit_yes|tmp_out|retrofit_yes|1,
+              joint = FALSE, 
+              zero.inflation = TRUE, 
+              one.inflation = TRUE, 
+              random = 0, 
+              EUID = 1:nrow(inputData),  
+              link.mu = "logit", 
+              link.x0 = "logit", 
+              link.x1 = "logit", 
+              data = inputData)
+# model summary 
+sample1 <- model$coeff
+
+# posterior inferences from zoib
+summ1 <- summary(sample1)
+
+summ2 <- cbind(summ1$stat[, 1], summ1$quant[, c(1, 5)])
+
+paraplot(summ2, legpos = "topright", annotate=TRUE, legtext = c("zoib"))
+
+# OR 
+install.packages("gamlss")
+install.packages("gamlss.dist")
+
+require(gamlss)
+require(gamlss.dist)
+
+model.gamlss <- gamlss(racine2 ~ genotype + traitement, 
+                sigma.formula=~genotype, 
+                nu.formula=~traitement, 
+                tau.formula=~1,
+                family=BEINF)
+
+summary(model.gamlss)
+
+GAIC(model.gamlss)
+
+
+
+
+
+```
+
+
+```{r}
+ ######################################################
+  #  mixed effects zoib with batch as a random variable
+  #####################################################
+  #eg.https://vuorre.netlify.com/post/2019/02/18/analyze-analog-scale-ratings-with-zero-one-inflated-beta-models/
+random <- zoib(yield ~ temp | 1 | 1, data=GasolineYield,
+                  joint = FALSE, random=1, EUID=GasolineYield$batch,
+                  zero.inflation = FALSE, one.inflation = FALSE,
+                  n.iter=3200, n.thin=15, n.burn=200)
+  sample2 <- eg.random$coeff
+  summary(sample2)
+```
+
+
+```{r}
+##### MODEL EXPLORATION ============================
+
+#Visualize the average temperature indoors as a function of outdoors: 
+ggplot(DF_SensorNWeather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method=lm)  # Add regression lines
+
+
+#Visualize the average temperature indoors as a function of outdoors: 
+ggplot(DF_SensorNWeather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method=lm)  # Add regression lines
+  
+
+#Visualize the com_upper as a function of outdoor temp: 
+DF_SensorNWeather %>%
+  filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+  ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method=lm)  # Add regression lines  
+  
+#family=quasibinomial
+# e.g., model3 <- glm(Proportion ~ Vegetation, family = quasibinomial, data = aedes_dat)
+# summary(model3)
+
+DF_SensorNWeather %>%
+  filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+  ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method="glm",
+              method.args = list(family = "quasibinomial"))
+
+ 
+
+    #Step 6) Create a model for IEQ, for each building:
+```
+
+
+```{r}
+
+##### SURVEY DATA:
+
+    # 7)  Organize survey data from pre and post
+    # 8)  Create a model for survey data
+
+#Import and organized survey data:
+
+SurveyPre <- read_xlsx(choose.files(),sheet = "Master")  #Pre-retrofit survey data: 
+SurveyPost <- read_xlsx(choose.files(),sheet = "A1")
+
+##### END OF SURVEY ANALYSIS CHUNK
+```
+
+
+
+
+```{r}
+# EXTRANNEOUS TIDBITS
+
+sapply(Sensordata,class)
+
+######### ARCHIVED original weekly sensor data
+
+#SensorRawWeekly <- 
+#    read.dta13(choose.files()) %>% # Load LTcomplete_weekly_collapsed.dta, which should be in a private folder i.e., NOT PUBLIC on Github
+#    mutate( 
+#        murb = substr(locID,1,3)) %>% # Create a column for building 
+#    rename(week_midpt = date, tmp_in_wk = tmp, weekID = week) %>% # distinguish that date is midpoint of a weekly average 
+#    select(murb,locID,weekID,week_midpt,tmp_in_wk,com_lower,com_upper) 
+
+ 
 SensorSummary <-
     SensorCleaned %>%
     group_by(weekID, week_midpt) %>%
@@ -73,31 +518,6 @@ Check2<- # look at dates of sensorData...because we want to align the weather da
     SensorRaw %>%
     select(date) %>%
     distinct() # the sensor data skips a day at new years; plus not all murbs have same week midpoint...
-
-
-##### Step 2) Get outdoor temp files into one dataframe by date:
-WeatherRaw <-
-    list.files("./RawData_doNotUpload/weather1", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
-    lapply(
-        read_csv, 
-        skip=24, # Skip meta-data rows
-        col_types = '_iii_____d_________________') %>% #choose only columns of interest
-    bind_rows() 
-WeatherRaw <-  #this is done in two steps because some years of weather have different underlying characteristic files
-    list.files("./RawData_doNotUpload/weather2", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
-    lapply(
-        read_csv, 
-        col_types = '_____iii_____d_________________') %>% #choose only columns of interest
-    bind_rows(.,WeatherRaw)  
-
-WeatherCleaned <-
-    WeatherRaw %>%
-    rowwise() %>%
-    mutate(
-        date = as.Date(
-            paste(Year,Month,Day, sep = "-"))) %>%
-    select(date,`Mean Temp (°C)`) %>%
-    rename(tmp_out_daily =`Mean Temp (°C)`)    # rename to differentiate between indoor/outdoor and daily/weekly average
 
 # n.b. These next steps can be simplified if sensor data is daily; the next steps are a 'workaround' because
 # the current sensor data is not continuously cut into weeks; rather it re-begins at the beginning of each calendar year,
@@ -110,12 +530,43 @@ Weather_Wkly <-
   #group_by(wks) %>%
   summarise(tmp_out_wkly = mean(tmp_out_daily)) %>%
   mutate(
-        week_midpt = as.Date(wks) + 3) # to match with sensordata      
+        week_midpt = as.Date(wks) + 3) # to match with sensordata   
 
 
-##### Steps 3 & 4) Merge outdoor and indoor data and categorize into pre and post: 
-    #  n.b. Pre-retrofit monitoring: weeks 2872 to 2924 (April 1 2015 - April 1 2016)
-    #  n.b. Post-retrofit monitoring: weeks 2970 to 3021, (February 15 2017-February 15 2018)
+######### weather data to workaround misaligned sensor dating: (this works but is clunky) #########
+date2015<-
+    WeatherCleaned %>%
+    subset(year(date) == 2015) %>%
+    group_by(
+        wks = cut(date, breaks = '7 days')) 
+date2016<-
+    WeatherCleaned %>%
+    subset(year(date) == 2016) %>%
+    group_by(
+        wks = cut(date, breaks = '7 days')) 
+date2017<-
+    WeatherCleaned %>%
+    subset(year(date) == 2017) %>%
+    group_by(
+        wks = cut(date, breaks = '7 days'))
+date2018<-
+    WeatherCleaned %>%
+    subset(year(date) == 2018) %>%
+    group_by(
+        wks = cut(date, breaks = '7 days'))
+
+dates_merged <-
+  Reduce(function(x, y) merge(x, y, all=TRUE), list(date2015, date2016, date2017, date2018)) 
+
+WeatherCleaned <-
+  na.omit(dates_merged) %>%
+  group_by(wks) %>%
+  summarise(tmp_out_wkly = mean(tmp_out_daily)) %>%
+  mutate(
+        week_midpt = as.Date(wks) + 3) # to match with sensordata     
+
+######### end of weather data workaround #########
+
 IEQ <- 
     merge(WeatherCleaned,SensorCleaned,by="week_midpt", all.x = TRUE, all.y = TRUE) %>% # outdoor and indoor data into one dataframe
     select(locID,murb,week_midpt,tmp_out_wkly,tmp_in_wk,com_lower,com_upper) %>% #re-order and get rid of extra date info
@@ -151,57 +602,9 @@ WeatherCleaned$week_midpt[52] <- SensorCleaned$week_midpt[1522]
 
   merge(SensorCleaned,WeatherCleaned, by="week_midpt", all.x = TRUE, all.y = TRUE) %>%
   subset(week_midpt %within% interval(as.Date("2015-12-25"), as.Date("2016-01-04")))
-  
-  
-  
-##### Step 5) Import and organized survey data:
-  
-# Pre-retrofit survey data: 
-  
-  
-  
+ 
+ 
 
-##### END OF PREP RAW DATA 
-```
-
-```{r}
-# EXTRANNEOUS TIDBITS
-
-sapply(Sensordata,class)
-
-######### weather data to workaround misaligned sensor dating: (this works but is clunky) #########
-date2015<-
-    WeatherCleaned %>%
-    subset(year(date) == 2015) %>%
-    group_by(
-        wks = cut(date, breaks = '7 days')) 
-date2016<-
-    WeatherCleaned %>%
-    subset(year(date) == 2016) %>%
-    group_by(
-        wks = cut(date, breaks = '7 days')) 
-date2017<-
-    WeatherCleaned %>%
-    subset(year(date) == 2017) %>%
-    group_by(
-        wks = cut(date, breaks = '7 days'))
-date2018<-
-    WeatherCleaned %>%
-    subset(year(date) == 2018) %>%
-    group_by(
-        wks = cut(date, breaks = '7 days'))
-
-dates_merged <-
-  Reduce(function(x, y) merge(x, y, all=TRUE), list(date2015, date2016, date2017, date2018)) 
-
-WeatherCleaned <-
-  na.omit(dates_merged) %>%
-  group_by(wks) %>%
-  summarise(tmp_out_wkly = mean(tmp_out_daily)) %>%
-  mutate(
-        week_midpt = as.Date(wks) + 3) # to match with sensordata     
-
-######### end of weather data workaround #########
 
 yr_list <- c(2015,2016)
 test2 <- subset(WeatherCleaned,FALSE)
@@ -266,12 +669,4 @@ WeatherCleaned$week_start <-
       
 
 ```
-
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+ 
