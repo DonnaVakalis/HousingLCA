@@ -19,11 +19,10 @@ output: html_notebook
 
 
 ```{r} 
-##### LIBRARIES:
+##### LIBRARIES:  ============
 library(readstata13) #to read in old stata file(s) with thermal and temp data
 library(readr) #to read csv weather files
-library(tidyverse) #for everything 
-library(dplyr) #for everything 
+
 library (lubridate) # for aligning dates
 library(ggplot2) # for plotting
 library(readxl) # for excel survey data files
@@ -32,21 +31,28 @@ library(glmmTMB) # for mixed effects model
 #library(GGally) # for two-limit obit model
 #library(VGAM) # for two-limit obit model
 #library(zoib) # for zoib model, note: first needed to install JAGS-4.x from https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/
-library(mgcv) # for mixed effects modelling with beta regression
-library(betareg) # same as above
+
+
+#library(mgcv) # for mixed effects modelling with beta regression
+#library(betareg) # same as above
 
 library(lme4)
+library(MASS) # for glmmPQL for mixed effect model with quasibinomial family
+library(AICcmodavg)
 
+library(gridExtra) # for formatting summarized AIC scores
+
+#load these last so their function names don't get overridden:
+library(tidyverse) #for everything 
+library(dplyr) #for everything 
 
 ```
 
 ```{r}
-##### GLOBAL VARIABLES e.g., colours
-
+##### GLOBAL VARIABLES e.g., colours ============
 colour1 = "#93C47D" # green 
 colour2 = "#F6B26B" # orange
 ```
-
 
 ```{r}
 ##### IEQ DATA PREP ============
@@ -59,14 +65,60 @@ colour2 = "#F6B26B" # orange
  
 
 ##### Step 1) Get indoor conditions by date and building into a dataframe:
-Day_Sensor <-
-    read.dta13(choose.files()) %>% # Choose LTcomplete_weekly_collapsed-daily.dta from a NON-PUBLIC folder
+dat.sensor <-
+    read.dta13(choose.files())  %>% # Choose LTcomplete_weekly_collapsed-daily.dta from a NON-PUBLIC folder
     mutate(
         murb = substr(locID,1,3)) %>% # create a column for buildingID
     rename(
         tmp_in = tmp) %>% # distinguish between indoor and outdoor temperature
     select(
         murb,locID,date,tmp_in,com_lower,com_upper,mrt,rhm) # select only information needed for next steps 
+
+rm(Day_Weather)
+
+##### Step 2) Get outdoor temp files into one dataframe by date:
+dat.weather <-
+    list.files("./RawData_doNotUpload/weather1", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
+    lapply(
+        read_csv, 
+        skip=24, # Skip meta-data rows
+        col_types = '_iii_____d_________________') %>% #choose only columns of interest
+    bind_rows() 
+dat.weather <-  #this is done in two steps because some years of weather have different underlying characteristic files
+    list.files("./RawData_doNotUpload/weather2", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
+    lapply(
+        read_csv, 
+        col_types = '_____iii_____d_________________') %>% #choose only columns of interest
+    bind_rows(.,dat.weather)  
+
+dat.weather <-
+    dat.weather %>%
+    rowwise() %>%
+    mutate(
+        date = as.Date(
+            paste(Year,Month,Day, sep = "-"))) %>%
+    select(date,`Mean Temp (°C)`) %>%
+    rename(tmp_out =`Mean Temp (°C)`)    # rename to differentiate between indoor/outdoor 
+
+ 
+
+##### Steps 3 & 4) Merge outdoor and indoor data and categorize into pre and post: 
+    #  n.b. Pre-retrofit monitoring: weeks 2872 to 2924 (April 1 2015 - April 1 2016)
+    #  n.b. Post-retrofit monitoring: weeks 2970 to 3021, (February 15 2017-February 15 2018)
+dat.Sensor.Weather <- 
+    merge(dat.weather, dat.sensor,by="date", all.x = TRUE, all.y = TRUE) %>% # outdoor and indoor data into one dataframe
+    mutate(
+        retrofit_yes = case_when (date %within% interval(ymd("2015-04-01"),ymd("2016-03-30"))~ FALSE,
+                                  date %within% interval(ymd("2017-02-01"),ymd("2018-01-31"))~ TRUE,
+                                  TRUE ~ NA)) %>% #default to NA if date outside the relevant intervals  
+    drop_na(retrofit_yes) 
+ 
+  
+##### END OF IEQ DATA PREP
+```
+
+```{r}
+##### QUICK CHECKS ============
 
 Check_N_Observations <- # Data Quick Check: for each building of interest... 
     Day_Sensor %>%
@@ -79,54 +131,13 @@ Check_N_Observations <- # Data Quick Check: for each building of interest...
         n_obs_persuite_pre = sum(n_obs_pre/n_suites), # data points per suite pre
         n_obs_persuite_post = sum(n_obs_post/n_suites)) # data points per suite pre
 
-
-
-##### Step 2) Get outdoor temp files into one dataframe by date:
-Day_Weather <-
-    list.files("./RawData_doNotUpload/weather1", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
-    lapply(
-        read_csv, 
-        skip=24, # Skip meta-data rows
-        col_types = '_iii_____d_________________') %>% #choose only columns of interest
-    bind_rows() 
-Day_Weather <-  #this is done in two steps because some years of weather have different underlying characteristic files
-    list.files("./RawData_doNotUpload/weather2", pattern = ".csv", full.names=TRUE, recursive = FALSE) %>%
-    lapply(
-        read_csv, 
-        col_types = '_____iii_____d_________________') %>% #choose only columns of interest
-    bind_rows(.,Day_Weather)  
-
-Day_Weather <-
-    Day_Weather %>%
-    rowwise() %>%
-    mutate(
-        date = as.Date(
-            paste(Year,Month,Day, sep = "-"))) %>%
-    select(date,`Mean Temp (°C)`) %>%
-    rename(tmp_out =`Mean Temp (°C)`)    # rename to differentiate between indoor/outdoor 
-
-
-
-
-##### Steps 3 & 4) Merge outdoor and indoor data and categorize into pre and post: 
-    #  n.b. Pre-retrofit monitoring: weeks 2872 to 2924 (April 1 2015 - April 1 2016)
-    #  n.b. Post-retrofit monitoring: weeks 2970 to 3021, (February 15 2017-February 15 2018)
-DF_SensorNWeather <- 
-    merge(Day_Weather, Day_Sensor,by="date", all.x = TRUE, all.y = TRUE) %>% # outdoor and indoor data into one dataframe
-    mutate(
-        retrofit_yes = case_when (date %within% interval(ymd("2015-04-01"),ymd("2016-03-30"))~ FALSE,
-                                  date %within% interval(ymd("2017-02-01"),ymd("2018-01-31"))~ TRUE,
-                                  TRUE ~ NA)) %>% #default to NA if date outside the relevant intervals  
-    drop_na(retrofit_yes) 
-  
 Check_Pre_Post_count<- # check that we have 365 days per suite of data for appropriate time period
   DF_SensorNWeather %>%
     filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
     group_by(murb,retrofit_yes) %>%
     summarise(n_days_recorded= n(), start=min(date), end=max(date), n_suites = n_distinct(locID), n_obs_per_suite = n_days_recorded/n_suites )
   
-  
-##### END OF IEQ DATA PREP
+
 ```
 
 ```{r}
@@ -139,18 +150,19 @@ Check_Pre_Post_count<- # check that we have 365 days per suite of data for appro
 ##### Step 5)  
 
 # Separate each murb into its own dataframe, for using as model input later:
-list_input_mr <- list() #Create a list in which I will save all six of the dfs
+dat.mr <- list() #Create a list in which I will save all six of the dfs
 for (i in 1:7) {
-    assign(paste0("mr",i), myvalues[i]) # labels for "mr1", "mr2" etc.
-    df_murb<-DF_SensorNWeather %>%
-        filter(murb==myvalues[i])  #copy all the data for a given building
-    list_input_mr[[i]] <- df_murb
-}
+    df_murb<-dat.Sensor.Weather %>%
+        filter(murb==(paste0("mr",i)))  #copy all the data for a given building
+        dat.mr[[i]] <- df_murb}
+rm(df_murb)
+rm(i)
 
 ##### Step 6)  
 
 # Quick visualization of the distirbution of upper_com values:
-DF_SensorNWeather%>%  
+dat.Sensor.Weather%>%  
+      subset(murb %in% c("mr1","mr2","mr6","mr7")) %>%
       ggplot(aes(x=com_upper,fill=retrofit_yes)) +
       scale_color_manual(values = c(colour2, colour1)) +
       scale_fill_manual(values = c(colour2, colour1)) +
@@ -167,24 +179,255 @@ DF_SensorNWeather%>%
 
 
 ```{r}
-#####  SIMPLE REGRESSION MODEL MIXED EFFECTS e.g., RANDOM INTERCEPT  ============
+##### REGRESSION MODEL MIXED EFFECTS e.g., RANDOM INTERCEPT  ============
 
+ 
+# MODEL 1: BASE MODEL: LME w RANDOM INTERCEPT 
 # example from https://ourcodingclub.github.io/2017/03/15/mixed-models.html#second 
-# mixed.lmer2 <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|sample), data = dragons)   
+# mixed.lmer2 <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|sample), data = dragons) 
 
-# RANDOM INTERCEPT MODELS
-
-mixed.lmer1 <- lmer(com_upper ~ tmp_out + retrofit_yes + (1|locID), data=list_input_mr[[1]])
-summary(mixed.lmer1) #Note locID explains 0.0599/(0.0599+0.0953) = 38.5% of variation that's "leftover" after the variance explained by our fixed effects. 
-
-list_mm.lmer1_mr <- list() #Create a list in which I will save all models go (one per building)
-list_mm.lmer1.summary_mr <- list() #Create a list for each summary of model
+m1.lmer<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
+m1.summary <- list()#Create a list for each summary of model
 for (i in 1:7) {
-    model<- lmer(com_upper ~ tmp_out + retrofit_yes + (1|locID), data=list_input_mr[[i]])
-    list_mm.lmer1_mr[[i]] <- model 
-    
+    model1<- lmer(com_upper ~ tmp_out + retrofit_yes + (1|locID),
+                 REML=FALSE,
+                 data=dat.mr[[i]])
+    m1.lmer[[i]] <- model1 
+    m1.summary[[i]]<-summary(model1)
 }
 
+
+# MODEL 1B: SAME AS 1, but with tmp^2 
+m1b.lmer<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
+m1b.summary <- list()#Create a list for each summary of model
+for (i in 1:7) {
+    model1<- lmer(com_upper ~ poly(tmp_out,2) + retrofit_yes + (1|locID),
+                 REML=FALSE,
+                 data=dat.mr[[i]])
+    m1b.lmer[[i]] <- model1 
+    m1b.summary[[i]]<-summary(model1)
+}
+rm(model1) 
+
+ 
+# MODEL 1C: SAME AS 1B, but interaction between retrofit and temp 
+m1c.lmer<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
+m1c.summary <- list()#Create a list for each summary of model
+for (i in 1:7) {
+    model1<- lmer(com_upper ~ poly(tmp_out,2)*retrofit_yes + (1|locID),
+                 REML=FALSE,
+                 data=dat.mr[[i]])
+    m1c.lmer[[i]] <- model1 
+    m1c.summary[[i]]<-summary(model1)
+}
+
+rm(model1) 
+
+# MODEL 2: RANDOM INTERCEPT + FAMILY: BINOMIAL
+# example from https://www.rdocumentation.org/packages/MASS/versions/7.3-51.4/topics/glmmPQL
+# summary(glmmPQL(y ~ trt + I(week > 2), random = ~ 1 | ID, family = binomial, data = bacteria))}
+
+
+m2.glmer.bin<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
+
+m2.glmer.bin[[1]] <-glmmTMB(com_upper ~ tmp_out + I(tmp_out^2) + retrofit_yes + (1|locID), dat.mr[[1]],
+                            family=list(family="binomial",
+                                        link="logit"))
+m2.glmer.bin[[2]] <-glmmTMB(com_upper ~ tmp_out + I(tmp_out^2) + retrofit_yes + (1|locID), dat.mr[[2]], 
+                            family=list(family="binomial",
+                                        link="logit"))
+m2.glmer.bin[[6]] <-glmmTMB(com_upper ~ tmp_out + I(tmp_out^2) + retrofit_yes + (1|locID), dat.mr[[6]], 
+                            family=list(family="binomial",
+                                        link="logit"))
+m2.glmer.bin[[7]] <-glmmTMB(com_upper ~ tmp_out + I(tmp_out^2) + retrofit_yes + (1|locID), dat.mr[[7]], 
+                            family=list(family="binomial",
+                                        link="logit"))
+
+# MODEL 3: RANDOM INTERCEPT + FAMILY: QUASIBINOMIAL
+# Note: glmmPQL and glmer don't support quasibinomial, only glmmPQL() of package MASS. And random effects syntax is different...  random=~1|boite 
+# example from https://statistique-et-logiciel-r.com/introduction-aux-glmm-avec-donnees-de-proportion/
+# example glmmPQL1 <- glmmPQL(y~trt, random=~1|boite, family=quasibinomial, data=mydata)
+
+m3.glmer.qb<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
+for (i in 1:7) {
+    model1<- glmmPQL(com_upper ~ tmp_out + retrofit_yes, random =~ 1|locID, 
+                     family=quasibinomial, 
+                     data= dat.mr[[i]])
+    m3.glmer.qb[[i]] <- model1  
+}
+rm(model1)
+
+ 
+# Anova and AIC and AICc not available for this model fit (quasi-binomial) 
+overdisp_fun <- function(model) { # from https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
+    rdf <- df.residual(model)
+    rp <- residuals(model,type="pearson")
+    Pearson.chisq <- sum(rp^2)
+    prat <- Pearson.chisq/rdf
+    pval <- pchisq(Pearson.chisq, df=rdf, lower.tail=FALSE)
+    c(chisq=Pearson.chisq,ratio=prat,rdf=rdf,p=pval)
+}
+
+overdisp_fun(m3.glmer.qb) # doesn't work because can't extract the residuals in the usual way... try a custom function:
+# Can use AICcCustom(logL, K, return.K = FALSE, second.ord = TRUE, nobs = NULL, c.hat = 1)
+# glmmPQL doesn't report the log-likelihood however it is the same as with the binomial family fit, so we will extract the loglikelihood from that and keep the dispersion parameter from the quasi-binomial model 
+# logLik = -2668.5, 
+AICcCustom(-2668.5, 3, return.K = FALSE, second.ord = TRUE, nobs = 5834, c.hat = 1) # AIC 5343.004
+# Can plot the residuals: 
+qqnorm(m3.glmer.qb$residuals)
+qqline(m3.glmer.qb$residuals)
+
+# Arguments in AICcCustom: 
+# logL the value of the model log-likelihood.
+# K the number of estimated parameters in the model.
+# return.K logical. If FALSE, the function returns the information criterion specified. If TRUE, the function returns K (number of estimated parameters) for a given model.
+# second.ord logical. If TRUE, the function returns the second-order Akaike information criterion (i.e., AICc).
+# nobs the sample size required to compute the AICc or QAICc.
+# c.hat value of overdispersion parameter (i.e., variance inflation factor) such as that obtained from c_hat. Note that values of c.hat different from 1 are only appropriate for binomial GLM’s with trials > 1 (i.e., success/trial or cbind(success, failure) syntax), with Poisson GLM’s, single-season or dynamic occupancy models.  c.hat > 1, AICcCustom will return the quasi-likelihood analogue of the information criterion requested.
+
+
+ 
+# MODEL 4: BETA MIXED MODEL (If possible, with Random Intercept! e.g., ...may have to transform data to (0,1)
+# example from: https://stats.stackexchange.com/questions/233366/how-to-fit-a-mixed-model-with-response-variable-between-0-and-1 
+# example glmmTMB(p ~ a+b+c + (1|subject), myData, family=list(family="beta",link="logit"))}
+# To use beta, we must first transform [0,1] to (0,1):  
+
+
+# first transform the com_upper response variable:
+# length(dat.Sensor.Weather$com_upper) is > 28000 and under the transformation it produces numbers too small... let n = 10000
+inputData <- 
+    dat.Sensor.Weather %>%
+        subset(murb=="mr1") %>%
+        mutate( # transform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
+           trans_com = (com_upper*10000-1)+0.5)/10000  
+        
+
+m4.glmer.beta<-glmmTMB(trans_com ~ tmp_out + retrofit_yes + (1|locID), inputData, family=list(family="beta",link="logit"))
+summary(model)
+
+typeof(dat.Sensor.Weather$com_upper)
+
+
+```
+
+
+
+```{r}
+
+
+#####  MODEL COMPARISON AND EVALUATION + BOX PLOT MEANS? ============
+
+# Build a table with AIC and QQ plots for each model (3 models and 4 buildings each, also the average AIC for a given model)
+
+# MODEL 1: BASE MODEL: LME w RANDOM INTERCEPT 
+df = NULL
+for (k in c(1,2,6,7)) {
+      model_name = "m1.lmer"
+      murb_ID = paste("mr",k)
+      AIC_value = AIC(m1.lmer[[k]])
+      df = rbind(df, data.frame(model_name,murb_ID,AIC_value))
+      qqnorm(resid(m1.lmer[[k]]), 
+          main = paste("MODEL 1 (Gaussian) Q-Q Plot Murb",k),
+          xlab = "Theoretical Quantiles", 
+          ylab = "Sample Quantiles")
+      qqline(resid(m1.lmer[[k]]))}
+
+
+# MODEL 1B: SAME AS 1, but with tmp^2 
+for (k in c(1,2,6,7)) {
+      model_name = "m1b.lmer"
+      murb_ID = paste("mr",k)
+      AIC_value = AIC(m1b.lmer[[k]])
+      df = rbind(df, data.frame(model_name,murb_ID,AIC_value))
+      qqnorm(resid(m1b.lmer[[k]]), 
+          main = paste("MODEL 1B (Gaussian Poly) Q-Q Plot Murb",k),
+          xlab = "Theoretical Quantiles", 
+          ylab = "Sample Quantiles")
+      qqline(resid(m1b.lmer[[k]]))}
+
+# MODEL 1C: SAME AS 1B, but with interaction with tmp  
+for (k in c(1,2,6,7)) {
+      model_name = "m1c.lmer"
+      murb_ID = paste("mr",k)
+      AIC_value = AIC(m1c.lmer[[k]])
+      df = rbind(df, data.frame(model_name,murb_ID,AIC_value))
+      qqnorm(resid(m1c.lmer[[k]]), 
+          main = paste("MODEL 1C (Gaussian Poly w Interaction Term) Q-Q Plot Murb",k),
+          xlab = "Theoretical Quantiles", 
+          ylab = "Sample Quantiles")
+      qqline(resid(m1c.lmer[[k]]))}
+
+# MODEL 2: SAME AS 1B, but with Binomial family
+for (k in c(1,2,6,7)) {
+      model_name = "m2.glmer.bin"
+      murb_ID = paste("mr",k)
+      AIC_value = AIC(m2.glmer.bin[[k]])
+      df = rbind(df, data.frame(model_name,murb_ID,AIC_value))
+      qqnorm(resid(m2.glmer.bin[[k]]), 
+          main = paste("MODEL 2 (Binomial) Q-Q Plot Murb",k),
+          xlab = "Theoretical Quantiles", 
+          ylab = "Sample Quantiles")
+      qqline(resid(m2.glmer.bin[[k]]))}
+
+
+# MODEL 3: SAME AS 1B, but with Quasi-Binomial family
+for (k in c(1,2,6,7)) {
+      model_name = "m3.glmer.qb"
+      murb_ID = paste("mr",k)
+      ll=logLik(m2.glmer.bin[[k]])
+      AIC_value = AICcCustom(ll, 3, return.K = FALSE, second.ord = TRUE, nobs = 5834, c.hat = 1)
+      df = rbind(df, data.frame(model_name,murb_ID,AIC_value))
+      qqnorm(resid(m3.glmer.qb[[k]]), 
+          main = paste("MODEL 3 (Quasi-Binomial) Q-Q Plot Murb",k),
+          xlab = "Theoretical Quantiles", 
+          ylab = "Sample Quantiles")
+      qqline(resid(m3.glmer.qb[[k]]))} 
+
+
+t.AIC.scores <-  # make a table with AIC scores for each model 
+  df %>% 
+  group_by(model_name) %>%
+  summarize(AIC_average = mean(AIC_value)) # (take average across all murbs, for brevity - minimum is same for all murbs)
+pdf("data_output.pdf", height=11, width=8.5)
+grid.table(t.AIC.scores )
+dev.off()
+
+# VISUALIZE
+(mm_plot <- ggplot(dat.mr[[7]], aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
+      facet_wrap(~locID, nrow=2) +   # a panel for each suite
+      geom_point(alpha = 0.2) +
+      theme_classic() +
+      geom_line(data = cbind(dat.mr[[7]], pred = predict(m1c.lmer[[7]])), aes(y = pred), size = 1) +  # adding predicted line from mixed model 
+      theme(legend.position = "bottom") +   
+      scale_color_manual(values = c(colour2, colour1))+
+      ylim(0,1)
+)
+
+
+ 
+
+      
+# Check residuals if we used a lm   
+model_check <- lm(dat.Sensor.Weather$com_upper ~ dat.Sensor.Weather$tmp_out + dat.Sensor.Weather$retrofit_yes) # x is tmp_out and y is com_upper
+qqnorm(model_check$residuals)
+qqline(model_check$residuals)
+hist(model_check$residuals) ## problem is that residuals are not normally distributed
+
+
+# Check whether 
+qqnorm(resid(mixed.lmer1))
+qqline(resid(mixed.lmer1)) # doesn't look great at edges... change to a quasi-binomial? 
+
+```
+
+
+```{r}
+# delve into model 1
+
+
+
+
+ # For lmer.1 For mr1, Notice locID explains 0.0599/(0.0599+0.0953) = 38.5% of variation that's "leftover" after the variance explained by our fixed effects... perform this calculation for each 
  
 
 # VISUALIZE
@@ -204,34 +447,8 @@ for (i in 1:7) {
 # mixed.lmer2 <- lmer(com_upper ~ tmp_out + retrofit_yes + (1 + tmp_out|locID), data= inputData_mr1)
 # summary(mixed.lmer2)
 
-```
-
-
-```{r}
 
 ```
-
-
-
-```{r}
-
-
-#####  MODEL COMPARISON AND EVALUATION ============
-      
-# Check residuals if we used a lm   
-model_check <- lm(DF_SensorNWeather$com_upper ~ DF_SensorNWeather$tmp_out + DF_SensorNWeather$retrofit_yes) # x is tmp_out and y is com_upper
-qqnorm(model_check$residuals)
-qqline(model_check$residuals)
-hist(model_check$residuals) ## problem is that residuals are not normally distributed
-
-
-# Check whether 
-qqnorm(resid(mixed.lmer1))
-qqline(resid(mixed.lmer1)) # doesn't look great at edges... change to a quasi-binomial? 
-
-```
-
-
 
 
 ```{r}
@@ -288,18 +505,18 @@ REML = FALSE)
 ##### TWO-LIMIT OBIT MODEL ============================
 
 inputData <- 
-    DF_SensorNWeather%>% 
+    dat.Sensor.Weather%>% 
         subset(murb=="mr1")
 inputData_pre <- 
-    DF_SensorNWeather%>% 
+    dat.Sensor.Weather%>% 
         subset(murb=="mr1") %>%
         subset(retrofit_yes==FALSE)
 inputData_post <- 
-    DF_SensorNWeather%>% 
+    dat.Sensor.Weather%>% 
         subset(murb=="mr1") %>%
         subset(retrofit_yes==TRUE)
 
-summary(tobitMod <- vglm(com_upper ~ tmp_out + retrofit_yes, tobit(Lower=0, Upper = 1), data = DF_SensorNWeather))
+summary(tobitMod <- vglm(com_upper ~ tmp_out + retrofit_yes, tobit(Lower=0, Upper = 1), data = dat.Sensor.Weather))
 
 tobit_fit_pre <-vglm(com_upper ~ tmp_out, tobit(Lower=0, Upper = 1), data = inputData_pre) 
 tobit_fit_post <-vglm(com_upper ~ tmp_out, tobit(Lower=0, Upper = 1), data = inputData_post)
@@ -325,18 +542,18 @@ ggplot() +
 
 # Try a Beta Regression Model *must transform to make com_upper ~ 0,1) open interval
 inputData <- 
-    DF_SensorNWeather%>%
+    dat.Sensor.Weather%>%
         mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
            trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
         subset(murb=="mr1")
 inputData_pre <- 
-    DF_SensorNWeather%>%
+    dat.Sensor.Weather%>%
         mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
            trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
         subset(murb=="mr1") %>%
         subset(retrofit_yes==FALSE)
 inputData_post <- 
-    DF_SensorNWeather%>%
+    dat.Sensor.Weather%>%
         mutate( # trasnform y=upper_com s.t. (y * (n−1) + 0.5) / n , where n is the sample size
            trans_com = (com_upper*(length(com_upper)-1)+0.5)/length(com_upper)) %>%
         subset(murb=="mr1") %>%
@@ -368,7 +585,7 @@ ggplot(inputData, aes(x = tmp_out, y = trans_com)) +
 ```{r}
 ##### VOIB MODEL ============================
 inputData <- 
-    DF_SensorNWeather%>%
+    dat.Sensor.Weather%>%
         subset(murb=="mr1")
 
 model <- zoib(com_upper ~ tmp_out + retrofit_yes|tmp_out|retrofit_yes|1,
@@ -433,7 +650,7 @@ random <- zoib(yield ~ temp | 1 | 1, data=GasolineYield,
 ##### MODEL EXPLORATION ============================
 
 #Visualize the average temperature indoors as a function of outdoors: 
-ggplot(DF_SensorNWeather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
+ggplot(dat.Sensor.Weather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
   geom_point(alpha=0.05) + 
   geom_rug() +
   facet_grid(~ murb) +
@@ -441,7 +658,7 @@ ggplot(DF_SensorNWeather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
 
 
 #Visualize the average temperature indoors as a function of outdoors: 
-ggplot(DF_SensorNWeather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
+ggplot(dat.Sensor.Weather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
   geom_point(alpha=0.05) + 
   geom_rug() +
   facet_grid(~ murb) +
@@ -449,7 +666,7 @@ ggplot(DF_SensorNWeather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
   
 
 #Visualize the com_upper as a function of outdoor temp: 
-DF_SensorNWeather %>%
+dat.Sensor.Weather %>%
   filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
   ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
   geom_point(alpha=0.05) + 
@@ -461,7 +678,7 @@ DF_SensorNWeather %>%
 # e.g., model3 <- glm(Proportion ~ Vegetation, family = quasibinomial, data = aedes_dat)
 # summary(model3)
 
-DF_SensorNWeather %>%
+dat.Sensor.Weather %>%
   filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
   ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
   geom_point(alpha=0.05) + 
