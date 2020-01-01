@@ -41,6 +41,8 @@ library(MASS) # for glmmPQL for mixed effect model with quasibinomial family
 library(AICcmodavg)
 
 library(gridExtra) # for formatting summarized AIC scores
+#library(jtools) # for formatting output summary, i.e., using summ() of models
+ 
 
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
@@ -120,6 +122,12 @@ dat.Sensor.Weather <-
 ```{r}
 ##### QUICK CHECKS ============
 
+
+Num_suites <-
+  dat.Sensor.Weather %>%
+  group_by(murb) %>%
+  summarize(n_suites = n_distinct(locID))
+
 Check_N_Observations <- # Data Quick Check: for each building of interest... 
     Day_Sensor %>%
     filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
@@ -177,9 +185,8 @@ dat.Sensor.Weather%>%
 ```
 
 
-
 ```{r}
-##### REGRESSION MODEL MIXED EFFECTS e.g., RANDOM INTERCEPT  ============
+##### SIX MIXED EFFECTS REGRESSION MODELS 1, 1B, 1C, 2, 3, 4 ============
 
  
 # MODEL 1: BASE MODEL: LME w RANDOM INTERCEPT 
@@ -214,7 +221,7 @@ rm(model1)
 m1c.lmer<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
 m1c.summary <- list()#Create a list for each summary of model
 for (i in 1:7) {
-    model1<- lmer(com_upper ~ poly(tmp_out,2)*retrofit_yes + (1|locID),
+    model1<- lmer(com_upper ~ I(tmp_out^2) + retrofit_yes*tmp_out + (1|locID),
                  REML=FALSE,
                  data=dat.mr[[i]])
     m1c.lmer[[i]] <- model1 
@@ -305,17 +312,14 @@ inputData <-
 m4.glmer.beta<-glmmTMB(trans_com ~ tmp_out + retrofit_yes + (1|locID), inputData, family=list(family="beta",link="logit"))
 summary(model)
 
-typeof(dat.Sensor.Weather$com_upper)
+ 
 
 
 ```
 
 
-
 ```{r}
-
-
-#####  MODEL COMPARISON AND EVALUATION + BOX PLOT MEANS? ============
+#####  MODEL COMPARISON AND EVALUATION: CHOOSE MODEL 1C ============
 
 # Build a table with AIC and QQ plots for each model (3 models and 4 buildings each, also the average AIC for a given model)
 
@@ -392,20 +396,6 @@ pdf("data_output.pdf", height=11, width=8.5)
 grid.table(t.AIC.scores )
 dev.off()
 
-# VISUALIZE
-(mm_plot <- ggplot(dat.mr[[7]], aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
-      facet_wrap(~locID, nrow=2) +   # a panel for each suite
-      geom_point(alpha = 0.2) +
-      theme_classic() +
-      geom_line(data = cbind(dat.mr[[7]], pred = predict(m1c.lmer[[7]])), aes(y = pred), size = 1) +  # adding predicted line from mixed model 
-      theme(legend.position = "bottom") +   
-      scale_color_manual(values = c(colour2, colour1))+
-      ylim(0,1)
-)
-
-
- 
-
       
 # Check residuals if we used a lm   
 model_check <- lm(dat.Sensor.Weather$com_upper ~ dat.Sensor.Weather$tmp_out + dat.Sensor.Weather$retrofit_yes) # x is tmp_out and y is com_upper
@@ -422,12 +412,73 @@ qqline(resid(mixed.lmer1)) # doesn't look great at edges... change to a quasi-bi
 
 
 ```{r}
-# delve into model 1
+# SUMMARIZE AND VISUALIZE RESULTS OF MODEL 1c ============
+
+# SUMMARIZE
+summ(m1c.lmer[[5]])
+summary(m1c.lmer[[5]])
+anova(m1c.lmer[[5]])
+
+# VISUALIZE
+ii=5
+(mm_plot <- ggplot(dat.mr[[ii]], aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
+      facet_wrap(~locID, nrow=2) +   # a panel for each suite
+      geom_point(alpha = 0.2) +
+      theme_classic() +
+      geom_line(data = cbind(dat.mr[[ii]], pred = predict(m1c.lmer[[ii]])), aes(y = pred), size = 1) +  # adding predicted line from mixed model 
+      theme(legend.position = "bottom") +   
+      scale_color_manual(values = c(colour2, colour1))+
+      ylim(0,1)
+)
 
 
+```
+
+
+```{r}
+# TRYING OUT VISUALIZATIONS OF MIXED MODELS ============
+
+##########
+
+library(nlme)
+fm2 <- lme(distance ~ age + Sex, data = Orthodont, random = ~ 1|Subject)
+
+newdat <- expand.grid(Sex=unique(Orthodont$Sex),
+                  age=c(min(Orthodont$age),
+                            max(Orthodont$age)))
+
+library(ggplot2)
+p <- ggplot(Orthodont, aes(x=age, y=distance, colour=Sex)) +
+  geom_point(size=3) +
+  geom_line(aes(y=predict(fm2), group=Subject, size="Subjects")) +
+  geom_line(data=newdat, aes(y=predict(fm2, level=0, newdata=newdat), size="Population")) +
+  scale_size_manual(name="Predictions", values=c("Subjects"=0.5, "Population"=3)) +
+  theme_bw(base_size=22) 
+print(p)
+
+#//////////////# 
+ 
+newdat <- expand.grid(retrofit_yes=unique(dat.mr[[1]]$retrofit_yes),
+                  tmp_out=c(min(dat.mr[[1]]$tmp_out),
+                            max(dat.mr[[1]]$tmp_out)))
+ 
+p <- ggplot(dat.mr[[1]], aes(x=tmp_out, y=com_upper, colour=retrofit_yes)) +
+  geom_point(size=3) +
+  geom_line(aes(y=predict(m1c.lmer[[1]]), group=locID, size="Suites")) +
+  geom_line(data=newdat , aes(y=predict(m1c.lmer[[1]], level=0, newdata=newdat), size="MURB 1 Population")) +
+  scale_size_manual(name="Predictions", values=c("Suites"=0.2, "Population"=3)) +
+  theme_bw(base_size=22) 
+print(p)
+ 
+summary(m1c.lmer[[1]]) 
+
+summary(m1c.lmer[[1]])
+anova(m1c.lmer[[1]])
+fixef(m1c.lmer[[1]])
 
 
  # For lmer.1 For mr1, Notice locID explains 0.0599/(0.0599+0.0953) = 38.5% of variation that's "leftover" after the variance explained by our fixed effects... perform this calculation for each 
+summary(m1.lmer[[1]])
  
 
 # VISUALIZE
@@ -440,14 +491,73 @@ qqline(resid(mixed.lmer1)) # doesn't look great at edges... change to a quasi-bi
       scale_color_manual(values = c(colour2, colour1))+
       ylim(0,1)
 )
-
  
 
-# note adding a RANDOM SLOPE fails to converge
-# mixed.lmer2 <- lmer(com_upper ~ tmp_out + retrofit_yes + (1 + tmp_out|locID), data= inputData_mr1)
-# summary(mixed.lmer2)
 
 
+```
+
+
+
+```{r}
+
+##### SURVEY DATA:
+
+    # 7)  Organize survey data from pre and post
+    # 8)  Create a model for survey data
+
+#Import and organized survey data:
+
+SurveyPre <- read_xlsx(choose.files(),sheet = "Master")  #Pre-retrofit survey data: 
+SurveyPost <- read_xlsx(choose.files(),sheet = "A1")
+
+##### END OF SURVEY ANALYSIS CHUNK
+```
+
+
+
+
+```{r}
+##### ARCHIVED: EARLY IEQ MODEL EXPLORATION ============================
+
+#Visualize the average temperature indoors as a function of outdoors: 
+ggplot(dat.Sensor.Weather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method=lm)  # Add regression lines
+
+
+#Visualize the average temperature indoors as a function of outdoors: 
+ggplot(dat.Sensor.Weather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method=lm)  # Add regression lines
+  
+
+#Visualize the com_upper as a function of outdoor temp: 
+dat.Sensor.Weather %>%
+  filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+  ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method=lm)  # Add regression lines  
+  
+#family=quasibinomial
+# e.g., model3 <- glm(Proportion ~ Vegetation, family = quasibinomial, data = aedes_dat)
+# summary(model3)
+
+dat.Sensor.Weather %>%
+  filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+  ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
+  geom_point(alpha=0.05) + 
+  geom_rug() +
+  facet_grid(~ murb) +
+  geom_smooth(method="glm",
+              method.args = list(family = "quasibinomial"))
+ 
 ```
 
 
@@ -631,88 +741,9 @@ GAIC(model.gamlss)
 
 ```
 
-
-```{r}
- ######################################################
-  #  mixed effects zoib with batch as a random variable
-  #####################################################
-  #eg.https://vuorre.netlify.com/post/2019/02/18/analyze-analog-scale-ratings-with-zero-one-inflated-beta-models/
-random <- zoib(yield ~ temp | 1 | 1, data=GasolineYield,
-                  joint = FALSE, random=1, EUID=GasolineYield$batch,
-                  zero.inflation = FALSE, one.inflation = FALSE,
-                  n.iter=3200, n.thin=15, n.burn=200)
-  sample2 <- eg.random$coeff
-  summary(sample2)
-```
-
-
-```{r}
-##### MODEL EXPLORATION ============================
-
-#Visualize the average temperature indoors as a function of outdoors: 
-ggplot(dat.Sensor.Weather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
-  geom_point(alpha=0.05) + 
-  geom_rug() +
-  facet_grid(~ murb) +
-  geom_smooth(method=lm)  # Add regression lines
-
-
-#Visualize the average temperature indoors as a function of outdoors: 
-ggplot(dat.Sensor.Weather, aes(x=tmp_out, y=tmp_in, color=retrofit_yes)) +
-  geom_point(alpha=0.05) + 
-  geom_rug() +
-  facet_grid(~ murb) +
-  geom_smooth(method=lm)  # Add regression lines
-  
-
-#Visualize the com_upper as a function of outdoor temp: 
-dat.Sensor.Weather %>%
-  filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
-  ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
-  geom_point(alpha=0.05) + 
-  geom_rug() +
-  facet_grid(~ murb) +
-  geom_smooth(method=lm)  # Add regression lines  
-  
-#family=quasibinomial
-# e.g., model3 <- glm(Proportion ~ Vegetation, family = quasibinomial, data = aedes_dat)
-# summary(model3)
-
-dat.Sensor.Weather %>%
-  filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
-  ggplot(aes(x=tmp_out, y=com_upper, color=retrofit_yes)) +
-  geom_point(alpha=0.05) + 
-  geom_rug() +
-  facet_grid(~ murb) +
-  geom_smooth(method="glm",
-              method.args = list(family = "quasibinomial"))
-
  
-
-    #Step 6) Create a model for IEQ, for each building:
-```
-
-
 ```{r}
-
-##### SURVEY DATA:
-
-    # 7)  Organize survey data from pre and post
-    # 8)  Create a model for survey data
-
-#Import and organized survey data:
-
-SurveyPre <- read_xlsx(choose.files(),sheet = "Master")  #Pre-retrofit survey data: 
-SurveyPost <- read_xlsx(choose.files(),sheet = "A1")
-
-##### END OF SURVEY ANALYSIS CHUNK
-```
-
-
-
-
-```{r}
-# EXTRANNEOUS TIDBITS
+# EXTRANNEOUS TIDBITS ============================
 
 sapply(Sensordata,class)
 
