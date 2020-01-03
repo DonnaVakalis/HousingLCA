@@ -508,8 +508,8 @@ summary(m1.lmer[[1]])
 
 #Import and organized survey data:
 
-SurveyPre <- read_xlsx(choose.files(),sheet = "Master")  #Pre-retrofit survey data: 
-SurveyPost <- read_xlsx(choose.files(),sheet = "A1")
+dat.surv.pre <- read_xlsx(choose.files(),sheet = "Master", range = cell_cols("A:GK"))  #Pre-retrofit survey data:8203 Occupant Air Quality Study Analysis v2 
+dat.surv.post <- read_xlsx(choose.files(),sheet = "A1") # Post-retrofit survey data: 9816_Onsite_Final Data2_Cleaned
 
 ##### END OF SURVEY ANALYSIS CHUNK
 ```
