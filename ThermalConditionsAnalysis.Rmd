@@ -170,7 +170,7 @@ rm(i)
 
 # Quick visualization of the distirbution of upper_com values:
 dat.Sensor.Weather%>%  
-      subset(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+      #subset(murb %in% c("mr1","mr2","mr6","mr7")) %>%
       ggplot(aes(x=com_upper,fill=retrofit_yes)) +
       scale_color_manual(values = c(colour2, colour1)) +
       scale_fill_manual(values = c(colour2, colour1)) +
