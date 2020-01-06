@@ -506,30 +506,29 @@ summary(m1.lmer[[1]])
     # 7)  Organize survey data from pre and post: gather into one dataframe
     # 8)  Create a model for survey data
 
-#Import pre an post raw data:
+#Import raw data, from pre an post surveys:
 file.surv.pre <- 
       read_xlsx(choose.files(),sheet = "Master", range = cell_cols("A:GK"))  #Pre-retrofit survey data:8203 Occupant Air Quality Study Analysis v2 
 file.surv.post <- read_xlsx(choose.files(),sheet = "A1") # Post-retrofit survey data: 9816_Onsite_Final Data2_Cleaned
 
 
-# Focus on relevant columns:
+# Clean up raw data, e.g., Focus on relevant columns:
 dat.surv.pre <-
-     file.surv.pre[c(1,4:7,53:64)] #Keep ResponseID, building, suite ID, and answers to thermal comfort questions
+     file.surv.pre[c(1,5:7,53:64)] #Keep ResponseID, building, suite ID, and answers to thermal comfort questions
 dat.surv.post <- 
-    file.surv.post[c(9:10,15,61:72)] %>% 
+    file.surv.post[c(9:10,13,15,61:72)] %>% 
     rename (ResponseID = occupant_import_dat_ResponseID) %>%
-    mutate (First_survey = 0)
+    mutate (Second_survey = 1) %>%
+    rename (Building = AptNm)
     
- 
- 
+# Merge Survey data into one dataframe:
 dat.surv.all <-
-    merge(dat.surv.pre , dat.surv.post, all.x=TRUE, all.y = TRUE)
+    merge(dat.surv.pre , dat.surv.post, by = c("ResponseID","Building"), all = TRUE)
 
- 
  
 Check_Respondants_common<-
   dat.surv.all %>%
-  group_by(First_Survey) %>%
+  group_by(First_Survey, Second_survey) %>%
   summarize(Respondants = n_distinct(ResponseID))
 
 ##### END OF SURVEY ANALYSIS CHUNK
