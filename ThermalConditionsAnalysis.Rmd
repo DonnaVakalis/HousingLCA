@@ -532,10 +532,38 @@ dat.surv.all <-
     merge(dat.surv.pre , dat.surv.post, 
           by = c("ResponseID","CODE","Building"), 
           all = TRUE) %>%
-    
+    subset(select= -c(Suite_coded,Suite,Building)) %>% # get ride of unused columns
+    select(ResponseID,CODE,numbed,First_Survey,Second_survey, everything()) #re-order columns for ease of reading
 
+
+# Interpret the survey answers into categories of "Too Cold", "Too Warm" or "Just Rignt", or "Don't Know"
+# Reminder of labels in survey codebook: Too cold==1, Just right==2, Too warm ==3, Don't Know ==4.
+dat.surv.all <-
+    dat.surv.all %>%
+    mutate ( # Create a new column for respondants that are too warm in the summer
+        Pre_summer_warm = case_when( 
+            Q8a_Summer==3  ~ "1", # Bachelor Apartments
+            Q8b_Summer_1==3 | Q8b_Summer_2== 3 ~ "1", # One bedroom Apartments
+            Q8c_Summer_2==3 | Q8c_Summer_3==3 ~ "1", # Family Apartments
+            TRUE ~ "0")) %>%
+    mutate ( # Create a new column for respondants that are too cold in the summer
+        Pre_summer_cold = case_when(
+            Q8a_Summer==1  ~ "1", # Bachelor Apartments
+            Q8b_Summer_1==1 | Q8b_Summer_2== 1 ~ "1", # One bedroom Apartments
+            Q8c_Summer_2==1 | Q8c_Summer_3==1 ~ "1", # Family Apartments
+            TRUE ~ "0")) %>% 
+    mutate ( # Create a new column for respondants that are just right in the summer
+        Pre_summer_cold = case_when(
+            Q8a_Summer==1  ~ "1", # Bachelor Apartments
+            Q8b_Summer_1==1 | Q8b_Summer_2== 1 ~ "1", # One bedroom Apartments
+            Q8c_Summer_2==1 | Q8c_Summer_3==1 ~ "1", # Family Apartments
+            TRUE ~ "0"))   
+          
+   
  
-Check_Respondants_common<-
+ 
+ 
+Check_count_responses<-
   dat.surv.all %>%
   group_by(First_Survey, Second_survey) %>%
   summarize(Respondants = n_distinct(ResponseID))
