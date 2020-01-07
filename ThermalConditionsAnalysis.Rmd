@@ -518,12 +518,21 @@ dat.surv.pre <-
 dat.surv.post <- 
     file.surv.post[c(9:10,13,15,61:72)] %>% 
     rename (ResponseID = occupant_import_dat_ResponseID) %>%
-    mutate (Second_survey = 1) %>%
-    rename (Building = AptNm)
+    mutate (Second_survey = 1) %>% 
+    rename (Building = AptNm) %>%  # rename to match pre-retrofit data 
+    rename (Suite = occupant_import_dat_Resp_Info_Suite) %>%  # rename to match pre-retrofit data 
+    mutate (Suite = str_pad(Suite, 4, pad = "0")) %>%  # format with leading zero if missing
+    mutate (Suite_coded = chartr("0123456789", "abcdefghij",  # code the last two digits as alphas
+                                 substr(Suite,3,4))) %>%
+    mutate (CODE = paste0("mr",Building,"_", substr(Suite,1,2),Suite_coded)) # create CODE variable matching pre-retrofit
+
     
 # Merge Survey data into one dataframe:
 dat.surv.all <-
-    merge(dat.surv.pre , dat.surv.post, by = c("ResponseID","Building"), all = TRUE)
+    merge(dat.surv.pre , dat.surv.post, 
+          by = c("ResponseID","CODE","Building"), 
+          all = TRUE) %>%
+    
 
  
 Check_Respondants_common<-
