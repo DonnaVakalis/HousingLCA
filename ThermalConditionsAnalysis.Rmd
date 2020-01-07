@@ -514,11 +514,13 @@ file.surv.post <- read_xlsx(choose.files(),sheet = "A1") # Post-retrofit survey 
 
 # Clean up raw data, e.g., Focus on relevant columns:
 dat.surv.pre <-
-     file.surv.pre[c(1,5:7,53:64)] #Keep ResponseID, building, suite ID, and answers to thermal comfort questions
+    file.surv.pre[c(1,5:7,53:64)] %>% #Keep ResponseID, building, suite ID, and answers to thermal comfort questions
+    rename(First_survey = First_Survey) %>%
+    mutate (First_survey = TRUE)   #Make logical variable for pre/post distinction
 dat.surv.post <- 
     file.surv.post[c(9:10,13,15,61:72)] %>% 
     rename (ResponseID = occupant_import_dat_ResponseID) %>%
-    mutate (Second_survey = 1) %>% 
+    mutate (Second_survey = TRUE) %>% 
     rename (Building = AptNm) %>%  # rename to match pre-retrofit data 
     rename (Suite = occupant_import_dat_Resp_Info_Suite) %>%  # rename to match pre-retrofit data 
     mutate (Suite = str_pad(Suite, 4, pad = "0")) %>%  # format with leading zero if missing
@@ -533,32 +535,56 @@ dat.surv.all <-
           by = c("ResponseID","CODE","Building"), 
           all = TRUE) %>%
     subset(select= -c(Suite_coded,Suite,Building)) %>% # get ride of unused columns
-    select(ResponseID,CODE,numbed,First_Survey,Second_survey, everything()) #re-order columns for ease of reading
+    select(ResponseID,CODE,numbed,First_survey,Second_survey, everything()) #re-order columns for ease of reading
 
 
 # Interpret the survey answers into categories of "Too Cold", "Too Warm" or "Just Rignt", or "Don't Know"
 # Reminder of labels in survey codebook: Too cold==1, Just right==2, Too warm ==3, Don't Know ==4.
 dat.surv.all <-
     dat.surv.all %>%
-    mutate ( # Create a new column for respondants that are too warm in the summer
-        Pre_summer_warm = case_when( 
-            Q8a_Summer==3  ~ "1", # Bachelor Apartments
-            Q8b_Summer_1==3 | Q8b_Summer_2== 3 ~ "1", # One bedroom Apartments
-            Q8c_Summer_2==3 | Q8c_Summer_3==3 ~ "1", # Family Apartments
-            TRUE ~ "0")) %>%
-    mutate ( # Create a new column for respondants that are too cold in the summer
-        Pre_summer_cold = case_when(
-            Q8a_Summer==1  ~ "1", # Bachelor Apartments
-            Q8b_Summer_1==1 | Q8b_Summer_2== 1 ~ "1", # One bedroom Apartments
-            Q8c_Summer_2==1 | Q8c_Summer_3==1 ~ "1", # Family Apartments
-            TRUE ~ "0")) %>% 
-    mutate ( # Create a new column for respondants that are just right in the summer
-        Pre_summer_cold = case_when(
-            Q8a_Summer==1  ~ "1", # Bachelor Apartments
-            Q8b_Summer_1==1 | Q8b_Summer_2== 1 ~ "1", # One bedroom Apartments
-            Q8c_Summer_2==1 | Q8c_Summer_3==1 ~ "1", # Family Apartments
-            TRUE ~ "0"))   
-          
+    mutate ( # Create a new column for respondants that are too warm, in the summer
+        Pre_S_warm = case_when( 
+            Q8a_Summer==3  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==3 | Q8b_Summer_2== 3 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==3 | Q8c_Summer_3==3 ~ 1, # Family Apartments
+            is.na(First_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>% # Add Zeros to rest
+    mutate ( # Create a new column for respondants that are too cold, in the summer
+        Pre_S_cold = case_when(
+            Q8a_Summer==1  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==1 | Q8b_Summer_2== 1 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==1 | Q8c_Summer_3==1 ~ 1, # Family Apartments
+            is.na(First_survey)  ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>% 
+    mutate ( # Create a new column for respondants that are just right, in the summer
+        Pre_S_just.right = case_when(
+            Q8a_Summer==2  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==2 & Q8b_Summer_2== 2 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==2 & Q8c_Summer_3==2 ~ 1, # Family Apartments
+            is.na(First_survey)  ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0))  %>%
+    mutate ( # Create a new column for respondants that "don't know", in the summer
+        Pre_S_DK = case_when(
+            Q8a_Summer==4  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==4 & Q8b_Summer_2== 4 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==4 & Q8c_Summer_3==4 ~ 1, # Family Apartments
+            is.na(First_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%
+    mutate ( # Create a new column for respondants that are too warm, in the summer
+        Post_S_warm = case_when( 
+            S8A==3  ~ 1, # Bachelor Apartments
+            S8Br1==3 | S8Br2== 3 ~ 1, # One bedroom Apartments
+            S8Cr2==3 | S8Cr3==3 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0))   # Add Zeros to rest
+
+
+
+
+
+dat.surv.all %>%
+  mutate(check_temp = Pre_S_cold+Pre_S_warm+Pre_S_just.right+Pre_S_DK) %>%
+  select(check_temp)
    
  
  
