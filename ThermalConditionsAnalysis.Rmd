@@ -43,6 +43,7 @@ library(AICcmodavg)
 library(gridExtra) # for formatting summarized AIC scores
 #library(jtools) # for formatting output summary, i.e., using summ() of models
  
+library(Gmisc)
 
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
@@ -501,7 +502,7 @@ summary(m1.lmer[[1]])
 
 ```{r}
 
-##### SURVEY DATA:
+##### SURVEY DATA: PROCESS RAW FILES
 
     # 7)  Organize survey data from pre and post: gather into one dataframe
     # 8)  Create a model for survey data
@@ -537,9 +538,17 @@ dat.surv.all <-
     subset(select= -c(Suite_coded,Suite,Building)) %>% # get ride of unused columns
     select(ResponseID,CODE,numbed,First_survey,Second_survey, everything()) #re-order columns for ease of reading
 
+##### END OF SURVEY DATA PREP
+
+```
+
+```{r}
+##### SURVEY DATA: GROUP THERMAL COMFORT ANSWERS
 
 # Interpret the survey answers into categories of "Too Cold", "Too Warm" or "Just Rignt", or "Don't Know"
 # Reminder of labels in survey codebook: Too cold==1, Just right==2, Too warm ==3, Don't Know ==4.
+
+# SUMMER: 
 dat.surv.all <-
     dat.surv.all %>%
     mutate ( # Create a new column for respondants that are too warm, in the summer
@@ -576,27 +585,143 @@ dat.surv.all <-
             S8Br1==3 | S8Br2== 3 ~ 1, # One bedroom Apartments
             S8Cr2==3 | S8Cr3==3 ~ 1, # Family Apartments
             is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
-            TRUE ~ 0))   # Add Zeros to rest
+            TRUE ~ 0)) %>%  # Add Zeros to rest
+    mutate ( # Create a new column for respondants that are too cold, in the summer
+        Post_S_cold = case_when( 
+            S8A==1  ~ 1, # Bachelor Apartments
+            S8Br1==1 | S8Br2== 1 ~ 1, # One bedroom Apartments
+            S8Cr2==1 | S8Cr3==1 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%   # Add Zeros to rest
+    mutate ( # Create a new column for respondants that are just right, in the summer
+        Post_S_just.right= case_when( 
+            S8A==2  ~ 1, # Bachelor Apartments
+            S8Br1==2 & S8Br2== 2 ~ 1, # One bedroom Apartments
+            S8Cr2==2 & S8Cr3==2 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%  # Add Zeros to rest
+    mutate ( # Create a new column for respondants that "are just right "Don't know", in the summer
+        Post_S_DK= case_when( 
+            S8A==4  ~ 1, # Bachelor Apartments
+            S8Br1==4 & S8Br2== 4 ~ 1, # One bedroom Apartments
+            S8Cr2==4 & S8Cr3==4 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%  # Add Zeros to rest
+    mutate ( # Create a column that is a factor for all summer thermal comfort pre-retrofit
+        Pre_S_tally = as.factor(
+                        case_when(
+                            Pre_S_warm == 1 ~ "Too warm in summer",
+                            Pre_S_just.right == 1 ~ "Just right in summer",
+                            Pre_S_cold == 1 ~ "Too cold in summer",
+                            Pre_S_DK == 1 ~ "Don't know"))) %>%
+    mutate ( # Create a column that is a factor for all summer thermal comfort post-retrofit
+        Post_S_tally = as.factor(
+                        case_when(
+                            Post_S_warm == 1 ~ "Too warm in summer",
+                            Post_S_just.right == 1 ~ "Just right in summer",
+                            Post_S_cold == 1 ~ "Too cold in summer",
+                            Post_S_DK == 1 ~ "Don't know")))
+
+
+# WINTER: 
+dat.surv.all <-
+    dat.surv.all %>%
+    mutate ( # Create a new column for respondants that are too warm, in the summer
+        Pre_W_warm = case_when( 
+            Q8a_Summer==3  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==3 | Q8b_Summer_2== 3 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==3 | Q8c_Summer_3==3 ~ 1, # Family Apartments
+            is.na(First_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>% # Add Zeros to rest
+    mutate ( # Create a new column for respondants that are too cold, in the summer
+        Pre_W_cold = case_when(
+            Q8a_Summer==1  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==1 | Q8b_Summer_2== 1 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==1 | Q8c_Summer_3==1 ~ 1, # Family Apartments
+            is.na(First_survey)  ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>% 
+    mutate ( # Create a new column for respondants that are just right, in the summer
+        Pre_W_just.right = case_when(
+            Q8a_Summer==2  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==2 & Q8b_Summer_2== 2 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==2 & Q8c_Summer_3==2 ~ 1, # Family Apartments
+            is.na(First_survey)  ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0))  %>%
+    mutate ( # Create a new column for respondants that "don't know", in the summer
+        Pre_W_DK = case_when(
+            Q8a_Summer==4  ~ 1, # Bachelor Apartments
+            Q8b_Summer_1==4 & Q8b_Summer_2== 4 ~ 1, # One bedroom Apartments
+            Q8c_Summer_2==4 & Q8c_Summer_3==4 ~ 1, # Family Apartments
+            is.na(First_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%
+    mutate ( # Create a new column for respondants that are too warm, in the summer
+        Post_W_warm = case_when( 
+            S8A==3  ~ 1, # Bachelor Apartments
+            S8Br1==3 | S8Br2== 3 ~ 1, # One bedroom Apartments
+            S8Cr2==3 | S8Cr3==3 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%  # Add Zeros to rest
+    mutate ( # Create a new column for respondants that are too cold, in the summer
+        Post_W_cold = case_when( 
+            S8A==1  ~ 1, # Bachelor Apartments
+            S8Br1==1 | S8Br2== 1 ~ 1, # One bedroom Apartments
+            S8Cr2==1 | S8Cr3==1 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%   # Add Zeros to rest
+    mutate ( # Create a new column for respondants that are just right, in the summer
+        Post_W_just.right= case_when( 
+            S8A==2  ~ 1, # Bachelor Apartments
+            S8Br1==2 & S8Br2== 2 ~ 1, # One bedroom Apartments
+            S8Cr2==2 & S8Cr3==2 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%  # Add Zeros to rest
+    mutate ( # Create a new column for respondants that "are just right "Don't know", in the summer
+        Post_W_DK= case_when( 
+            S8A==4  ~ 1, # Bachelor Apartments
+            S8Br1==4 & S8Br2== 4 ~ 1, # One bedroom Apartments
+            S8Cr2==4 & S8Cr3==4 ~ 1, # Family Apartments
+            is.na(Second_survey) ~ NA_real_, # Make sure only counting pre-retrofit respondants
+            TRUE ~ 0)) %>%  # Add Zeros to rest
+    mutate ( # Create a column that is a factor for all summer thermal comfort pre-retrofit
+        Pre_W_tally = as.factor(
+                        case_when(
+                            Pre_W_warm == 1 ~ "Too warm in summer",
+                            Pre_W_just.right == 1 ~ "Just right in summer",
+                            Pre_W_cold == 1 ~ "Too cold in summer",
+                            Pre_W_DK == 1 ~ "Don't know"))) %>%
+    mutate ( # Create a column that is a factor for all summer thermal comfort post-retrofit
+        Post_W_tally = as.factor(
+                        case_when(
+                            Post_W_warm == 1 ~ "Too warm in summer",
+                            Post_W_just.right == 1 ~ "Just right in summer",
+                            Post_W_cold == 1 ~ "Too cold in summer",
+                            Post_W_DK == 1 ~ "Don't know")))
 
 
 
-
-
-dat.surv.all %>%
-  mutate(check_temp = Pre_S_cold+Pre_S_warm+Pre_S_just.right+Pre_S_DK) %>%
-  select(check_temp)
-   
+## VISUALIZATION    
  
- 
+trn_mtrx_summer <-
+  with(dat.surv.all,
+       table(Pre_S_tally, 
+             Post_S_tally)) 
+htmlTable(trn_mtrx_summer, title = "Summer Pre/Post", ctable = TRUE)
+#transitionPlot(trn_mtrx)
+
+## CHECKS  
  
 Check_count_responses<-
   dat.surv.all %>%
   group_by(First_Survey, Second_survey) %>%
   summarize(Respondants = n_distinct(ResponseID))
 
+dat.surv.all %>% # check that all responses are accounted for exactly once
+  mutate(check_temp_PRE = Pre_S_cold+Pre_S_warm+Pre_S_just.right+Pre_S_DK) %>%
+  mutate (check_temp_POST = Post_S_cold+Post_S_warm+Post_S_just.right+Post_S_DK) %>%
+  select(check_temp_PRE, check_temp_POST)
+
 ##### END OF SURVEY ANALYSIS CHUNK
 ```
-
 
 
 
