@@ -45,6 +45,7 @@ library(gridExtra) # for formatting summarized AIC scores
  
 #library(Gmisc) # for visualizing survey answers...trying sankey diagrams
 library(reshape2) #for ggplot of survey answers
+library(ggpubr) #for using ggarrange to plot multiple figures together 
 
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
@@ -745,11 +746,13 @@ plot.W<-
         labs(x="How comfortable are you in the winter months?", y="count\n") + 
         theme(panel.grid.major=element_blank())
 
-p<- ggarrange(plot.S, plot.W, ncol=2, nrow=1, common.legend = TRUE, legend="center")
-annotate_figure(p, top=text_grob("How Comfortable are you in different rooms of your apartment?"))
-ggsave(path="plots_doNotUpload", filename="results_2.pdf", width = 12, height = 7) 
+
+p<- ggarrange(plot.S, plot.W, ncol=2, nrow=1, common.legend = TRUE, legend="right")
+#annotate_figure(p, top=text_grob("How Comfortable are you in different rooms of your apartment?"))
+ggsave(path="plots_doNotUpload", filename="results_2.pdf", width = 10, height = 4) 
 rm(p)
 
+# Make a transition matrix showing the movement between thermal comfort pre and post
 trn_mtrx_summer <-
   with(dat.surv.all,
        table(Pre_Summer, 
@@ -775,6 +778,20 @@ dat.surv.all %>% # check that all responses are accounted for exactly once
   mutate(check_temp_PRE = Pre_S_cold+Pre_S_warm+Pre_S_just.right+Pre_S_DK) %>%
   mutate (check_temp_POST = Post_S_cold+Post_S_warm+Post_S_just.right+Post_S_DK) %>%
   select(check_temp_PRE, check_temp_POST)
+
+dat.surv.all %>% # tally the percentage "just right" by building
+  select(murb,Pre_S_warm:Post_W_DK) %>%
+  group_by(murb,Pre_W_just.right) %>%
+  
+  mutate_at(vars(c("Pre_S_just.right","Post_W_just.right")),funs("percent"=./sum(.)))
+  
+dat.surv.all %>%
+  select(murb,Pre_Summer,Post_Summer) %>%
+    melt(id="murb")%>%
+    na.omit() %>%
+    
+  
+  
 
 ```
 
