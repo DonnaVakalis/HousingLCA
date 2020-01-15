@@ -50,6 +50,7 @@ library(gridExtra) # for formatting summarized AIC scores
 #library(Gmisc) # for visualizing survey answers...trying sankey diagrams
 library(reshape2) #for ggplot of survey answers
 library(ggpubr) #for using ggarrange to plot multiple figures together 
+library(htmlTable) #for displaying tables, e.g., transition matrices of thermal comfort survey restults
 
 library(interactions) # for pulling out coefficients from the mixed model
 
@@ -126,7 +127,6 @@ dat.Sensor.Weather <-
                                   TRUE ~ NA)) %>% #default to NA if date outside the relevant intervals  
     drop_na(retrofit_yes) 
  
-rm(dat.sensor)  
  
 ##### END OF IEQ DATA PREP
 ```
@@ -748,10 +748,11 @@ table(dat.surv.all$Post_Winter,dat.surv.all$murb) %>%
 
  
 ##### SURVEY DATA + IEQ: MATCH PREDICTED and SURVEYED COMFORT
-
-# Make a dataframe with a list of locations, including their murb, that were in the set of sensor data 
+ 
+# Make a dataframe to hold all important variables,
+# with a list of locations, including their murb, that were in the set of sensor data 
 # Add their thermal comfort for summer/winter pre/post,  for comparison between survey and sensored suites
-dat.sur.sens.weath <-
+dat.cmpr.all.rslts <-
     data.frame(CODE = unique(dat.sensor$locID)) %>%
     mutate (sensored_suite = TRUE) %>%
     merge(dat.surv.all, by = "CODE", all = TRUE) %>%
@@ -786,42 +787,41 @@ for (i in 1:7) {
 rm(i)
 
 # find the mean temp in summer and winter
-temp.summer <-
-    dat.weather %>%
-    filter((date(date)>="2015-06-21" & date(date)<"2015-09-21") | (date(date)>="2017-06-21" & date(date)<"2017-09-21")) %>%
-    #select(tmp_out) %>%
-    summarise(Average = mean(tmp_out, na.rm = T))
-        
-    ))# defined as average between June 21 and Sept 21
-temp.winter # defined as average between Dec 21 and Feb 21
-
-
+ 
  # Recall dates for predicted comfort analysis were retrofit = 
   #  %within% interval(ymd("2015-04-01"),ymd("2016-03-30"))~ FALSE,
-  #  %within% interval(ymd("2017-02-01"),ymd("2018-01-31"))~ TRUE,  
+  #  %within% interval(ymd("2017-02-01"),ymd("2018-01-31"))~ TRUE
+# However, here we are just finding an example temperature at which to then predict the comfort 
+# (temp doesn't have to be precisesly representative of the summer/winter in question)
+tmp.mn.smmr<- 
+    dat.weather %>% # defined as average between June 21 and Sept 21
+    filter((date(date)>="2015-06-21" & date(date)<"2015-09-21") | (date(date)>="2017-06-21" & date(date)<"2017-09-21"))  
+    tmp.mn.smmr <- mean(tmp.mn.smmr$tmp_out) %>% round(round(digits=2))
+ 
+tmp.mn.wntr<-
+    dat.weather %>% # defined as average between Dec 21 and Feb 21
+    filter((date(date)>="2015-12-21" & date(date)<"2016-02-21") | (date(date)>="2017-12-21" & date(date)<"2018-02-21"))  
+    tmp.mn.wntr <- mean(tmp.mn.wntr$tmp_out) %>% round(round(digits=2))  
+  
+
 
 
 # for building-level and then for suite-level:
 # compare pre and post average comfort for summer and winter to the pre and post responses 
 
+results <-
+    merge(dat.cmpr.all.rslts,
+          dat.predicted.comf, all=TRUE)
+     
+
+    
+    
+    
 # make a column for delta "% responses just right" and a column for delta "predicted comfort"
  
 # mini sensitivity-analysis: check other temperatures
 
 
-
-
-
-
-rm(dat.predicted.comf)
-class(coef(m1c.lmer[[1]]))
-class(dat.predicted.comf[])
-
-head(dat.predicted.comf[1])
-
-dat.predicted.com <- reduce(full_join, dat.predicted.comf[])   
-
-dat.predicted.comf %>% reduce(full_join)
 
 # Add a column for the Murb-level Intercept Pre/Post and Suite-Intercept Pre/Post for general magnitude/direction of predicted comfort pre/post
 
