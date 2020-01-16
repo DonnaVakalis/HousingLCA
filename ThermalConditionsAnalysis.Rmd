@@ -53,6 +53,8 @@ library(ggpubr) #for using ggarrange to plot multiple figures together
 library(htmlTable) #for displaying tables, e.g., transition matrices of thermal comfort survey restults
 
 library(interactions) # for pulling out coefficients from the mixed model
+#library(data.table) # for making nice-looking tables of results
+library(formattable)  # for making nice-looking tables of results
 
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
@@ -786,6 +788,11 @@ for (i in 1:7) {
         bind_rows(.,dat.predicted.comf)}
 rm(i)
 
+# put predcited comfort and surveyed comfort together
+dat.cmpr.all.rslts<- merge(dat.cmpr.all.rslts,
+                            dat.predicted.comf, all=TRUE)
+ 
+
 # find the mean temp in summer and winter
  
  # Recall dates for predicted comfort analysis were retrofit = 
@@ -804,33 +811,59 @@ tmp.mn.wntr<-
     tmp.mn.wntr <- mean(tmp.mn.wntr$tmp_out) %>% round(round(digits=2))  
   
 
+# Update results dataframe with predicted comfort for a typical summer and winter day
+dat.cmpr.all.rslts <-
+    dat.cmpr.all.rslts %>%
+    filter(sensored_suite == TRUE) %>%
+    mutate(
+        Pre_smmr_prct = round(suite.int + murb.tmp.int*tmp.mn.smmr + murb.tmp2.int*tmp.mn.smmr, digits=2),  # add column with predicted % time comfortable
+        Post_smmr_prct =  round(suite.int  + murb.tmp.int*tmp.mn.smmr + murb.tmp2.int*tmp.mn.smmr + murb.retrofit + murb.ret_tmp, digits=2), #same for post-retrofit, which has the extra terms
+        Pre_wntr_prct = round(suite.int  + murb.tmp.int*tmp.mn.wntr + murb.tmp2.int*tmp.mn.wntr, digits=2), # for average summer day and average winter day
+        Post_wntr_prct = round(suite.int  + murb.tmp.int*tmp.mn.wntr + murb.tmp2.int*tmp.mn.wntr + murb.retrofit + murb.ret_tmp, digits =2)) %>%
+        mutate( 
+            Pre_smmr_prct = case_when(Pre_smmr_prct>=1 ~ 1, TRUE ~ Pre_smmr_prct),
+            Post_smmr_prct = case_when(Post_smmr_prct>=1 ~ 1, TRUE ~ Post_smmr_prct),
+            Pre_wntr_prct = case_when(Pre_wntr_prct>=1 ~ 1, TRUE ~ Pre_wntr_prct),
+            Post_wntr_prct = case_when(Post_wntr_prct>=1 ~ 1, TRUE ~ Post_wntr_prct))
 
-
+ 
 # for building-level and then for suite-level:
 # compare pre and post average comfort for summer and winter to the pre and post responses 
+ls.results = list()
+for (i in 1:7) { 
+    ls.results[[i]]  <-
+        dat.cmpr.all.rslts %>%
+        filter (locID ==i) %>%
+        select(-c(3,4,9:18))}
+    
 
-results <-
-    merge(dat.cmpr.all.rslts,
-          dat.predicted.comf, all=TRUE)
+formattable(ls.results[[7]])    
      
 
     
-    
+# Out of interest: does variance of predicted comfort change pre/post?    
     
 # make a column for delta "% responses just right" and a column for delta "predicted comfort"
  
-# mini sensitivity-analysis: check other temperatures
-
-
+# mini sensitivity-analysis: check other temperatures - and check extremes
 
 # Add a column for the Murb-level Intercept Pre/Post and Suite-Intercept Pre/Post for general magnitude/direction of predicted comfort pre/post
-
 
 # Also report the murb as a whole, on average, versus the occupants (i.e., not just sensored suites) of that murb
 
 
 ```
  
+ 
+```{r}
+########## SIDE PROJECT =============
+
+# What variables are the best proxys for occupant's self-reported thermal comfort? 
+# Check correlation between different measures of predicted thermal comfort, temperatures (i.e., average, high, low, seasonal average...), other answers on survey (e.g., number of bedrooms, building, time living in apartment, smoking, draftiness, etc.)
+
+
+
+```
  
  
 ```{r}
