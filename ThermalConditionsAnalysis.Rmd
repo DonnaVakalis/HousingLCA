@@ -43,6 +43,7 @@ library(glmmTMB) # for mixed effects model
 library(lme4)
 library(MASS) # for glmmPQL for mixed effect model with quasibinomial family
 library(AICcmodavg)
+library(jtools) # for summ function
 
 library(gridExtra) # for formatting summarized AIC scores
 #library(jtools) # for formatting output summary, i.e., using summ() of models
@@ -113,8 +114,8 @@ dat.weather <-
     mutate(
         date = as.Date(
             paste(Year,Month,Day, sep = "-"))) %>%
-    select(date,`Mean Temp (°C)`) %>%
-    rename(tmp_out =`Mean Temp (°C)`)    # rename to differentiate between indoor/outdoor 
+    select(date,`Mean Temp (Â°C)`) %>%
+    rename(tmp_out =`Mean Temp (Â°C)`)    # rename to differentiate between indoor/outdoor 
 
  
 
