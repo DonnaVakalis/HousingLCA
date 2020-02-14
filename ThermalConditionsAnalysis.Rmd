@@ -46,7 +46,7 @@ library(AICcmodavg)
 library(jtools) # for summ function
 
 library(gridExtra) # for formatting summarized AIC scores
-#library(jtools) # for formatting output summary, i.e., using summ() of models
+library(jtools) # for formatting output summary, i.e., using summ() of models
  
 #library(Gmisc) # for visualizing survey answers...trying sankey diagrams
 library(reshape2) #for ggplot of survey answers
