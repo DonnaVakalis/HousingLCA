@@ -721,7 +721,7 @@ transitionPlot(trn_mtrx_winter)
 ## CHECKS  
 check.count_responses<-
   dat.surv.all %>%
-  group_by(First_Survey, Second_survey) %>%
+  group_by(murb,First_survey, Second_survey) %>%
   summarize(Respondants = n_distinct(ResponseID))
 
 dat.surv.all %>% # check that all responses are accounted for exactly once
