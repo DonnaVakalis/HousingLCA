@@ -155,11 +155,17 @@ Check_N_Observations <- # Data Quick Check: for each building of interest...
         n_obs_persuite_post = sum(n_obs_post/n_suites)) # data points per suite pre
 
 Check_Pre_Post_count<- # check that we have 365 days per suite of data for appropriate time period
-  DF_SensorNWeather %>%
-    filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
+  dat.Sensor.Weather %>%
+    #filter(murb %in% c("mr1","mr2","mr6","mr7")) %>%
     group_by(murb,retrofit_yes) %>%
     summarise(n_days_recorded= n(), start=min(date), end=max(date), n_suites = n_distinct(locID), n_obs_per_suite = n_days_recorded/n_suites )
+rm(Check_Pre_Post_count)
   
+tmp <-
+  dat.sensor %>%
+  group_by(murb) %>%
+  summarize(n_suites=n_distinct(locID)) 
+rm(tmp)
 
 ```
 
@@ -721,7 +727,7 @@ transitionPlot(trn_mtrx_winter)
 ## CHECKS  
 check.count_responses<-
   dat.surv.all %>%
-  group_by(murb,First_survey, Second_survey) %>%
+  group_by(CODE,First_survey, Second_survey) %>%
   summarize(Respondants = n_distinct(ResponseID))
 
 dat.surv.all %>% # check that all responses are accounted for exactly once
@@ -730,6 +736,9 @@ dat.surv.all %>% # check that all responses are accounted for exactly once
   select(check_temp_PRE, check_temp_POST)
 
 
+# count number of monitored suites that were part of surveys
+# in dat.sensor$locID and CODE 
+dat.surv.pre
 
 
 # tally the percentage answers, by building, for each season
