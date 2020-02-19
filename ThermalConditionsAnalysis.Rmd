@@ -737,8 +737,10 @@ dat.surv.all %>% # check that all responses are accounted for exactly once
 
 
 # count number of monitored suites that were part of surveys
-# in dat.sensor$locID and CODE 
-dat.surv.pre
+# in dat.sensor$locID and CODE, for  
+check.count_overlaps<-
+    filter(dat.surv.all$First_survey==TRUE) %>%
+    sum (which(unique(dat.surv.all$CODE) == unique(dat.sensor$locID)))
 
 
 # tally the percentage answers, by building, for each season
