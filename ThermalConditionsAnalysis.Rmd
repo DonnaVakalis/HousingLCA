@@ -738,9 +738,32 @@ dat.surv.all %>% # check that all responses are accounted for exactly once
 
 # count number of monitored suites that were part of surveys
 # in dat.sensor$locID and CODE, for  
-check.count_overlaps<-
-    filter(dat.surv.all$First_survey==TRUE) %>%
-    sum (which(unique(dat.surv.all$CODE) == unique(dat.sensor$locID)))
+check.1survey <- 
+    dat.surv.all %>%
+    filter( First_survey == TRUE) %>% 
+    select(CODE) 
+ 
+check.1results<- 
+  dat.sensor %>%
+  filter( dat.sensor$locID %in%  check.1survey$CODE) %>%
+  select(locID,murb)%>%
+  distinct(locID, .keep_all = TRUE) %>%
+  group_by(murb) %>%
+  tally()
+ 
+check.2survey <- 
+    dat.surv.all %>%
+    filter( Second_survey == TRUE) %>% 
+    select(CODE) 
+ 
+check.2results<- 
+  dat.sensor %>%
+  filter( dat.sensor$locID %in%  check.2survey$CODE) %>%
+  select(locID,murb)%>%
+  distinct(locID, .keep_all = TRUE) %>%
+  group_by(murb) %>%
+  tally()
+
 
 
 # tally the percentage answers, by building, for each season
