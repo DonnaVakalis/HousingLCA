@@ -716,6 +716,7 @@ trn_mtrx_summer <-
              Post_Summer)) 
 htmlTable(trn_mtrx_summer, title = "Summer Pre/Post", ctable = TRUE)
 
+
 trn_mtrx_winter <-
   with(dat.surv.all,
        table(Pre_Winter, 
@@ -724,7 +725,26 @@ htmlTable(trn_mtrx_winter, title = "Winter Pre/Post", ctable = TRUE)
 
 transitionPlot(trn_mtrx_winter)
 
-## CHECKS  
+ 
+#------------------
+# HEAT MAPS
+#------------------
+ 
+#Summer Survey Data Heatmap
+df.heatmp.smmr <- as.data.frame(trn_mtrx_summer)
+ggplot(data = df.heatmp.smmr , aes(x = Pre_Summer, y = Post_Summer)) +
+  geom_tile(aes(fill = Freq)) +
+  scale_fill_gradient(low="white", high="black") 
+
+#Winter Survey Data Heatmap
+df.heatmp.wntr <- as.data.frame(trn_mtrx_winter)
+ggplot(data = df.heatmp.wntr, aes(x = Pre_Winter, y = Post_Winter)) +
+  geom_tile(aes(fill = Freq)) +
+  scale_fill_gradient(low="white", high="black") 
+ 
+#------------------
+# CHECKS
+#------------------
 check.count_responses<-
   dat.surv.all %>%
   group_by(CODE,First_survey, Second_survey) %>%
