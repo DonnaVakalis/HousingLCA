@@ -764,7 +764,13 @@ check.2results<-
   group_by(murb) %>%
   tally()
 
-
+mr103eb<- 
+  dat.surv.all %>%
+  filter(CODE=="mr1_03eb" | CODE == "mr1_03ea")
+ 
+mr5_09adb<- 
+  dat.surv.all %>%
+  filter(CODE=="mr5_09ad")
 
 # tally the percentage answers, by building, for each season
 table(dat.surv.all$Pre_Winter,dat.surv.all$murb) %>%
