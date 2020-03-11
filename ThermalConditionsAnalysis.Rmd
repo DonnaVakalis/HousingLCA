@@ -508,7 +508,9 @@ rm(dat.surv.pre,dat.surv.post)
 # Interpret the survey answers into categories of "Too Cold", "Too Warm" or "Just Rignt", or "Don't Know"
 # Reminder of labels in survey codebook: Too cold==1, Just right==2, Too warm ==3, Don't Know ==4.
 
-# SUMMER: 
+#------------------
+# SUMMER
+#------------------
 dat.surv.all <-
     dat.surv.all %>%
     mutate ( # Create a new column for respondants that are too warm, in the summer
@@ -582,8 +584,10 @@ dat.surv.all <-
                             Post_S_cold == 1 ~ "Too cold",
                             Post_S_DK == 1 ~ "Don't know")))
 
-
-# WINTER: 
+#------------------
+# WINTER 
+#------------------
+ 
 dat.surv.all <-
     dat.surv.all %>%
     mutate ( # Create a new column for respondants that are too warm, in the summer
@@ -666,8 +670,10 @@ dat.surv.all <-
 ```{r}
 
 ##### SURVEY DATA: VISUALIZE THERMAL COMFORT RESULTS ============
-
-## VISUALIZATION    
+ 
+#------------------
+# VISUALIZATION 
+#------------------
  
 # make the plot for Summer
 plot.S<-
@@ -793,16 +799,25 @@ mr5_09adb<-
   filter(CODE=="mr5_09ad")
 
 # tally the percentage answers, by building, for each season
-table(dat.surv.all$Pre_Winter,dat.surv.all$murb) %>%
+table(dat.surv.all$murb,dat.surv.all$Pre_Winter) %>%
     prop.table(margin=1) %>%
     round(3) %>%
      `*`(100)
 
-table(dat.surv.all$Post_Winter,dat.surv.all$murb) %>%
+table(dat.surv.all$murb,dat.surv.all$Pre_Summer) %>%
+    prop.table(margin=1) %>%
+    round(3) %>%
+     `*`(100)
+
+table(dat.surv.all$murb,dat.surv.all$Post_Winter) %>%
     prop.table(margin=1) %>%
     round(3) %>%
      `*`(100)
  
+table(dat.surv.all$murb,dat.surv.all$Post_Summer) %>%
+    prop.table(margin=1) %>%
+    round(3) %>%
+     `*`(100)
  
 
 ```
