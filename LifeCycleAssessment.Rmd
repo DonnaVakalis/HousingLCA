@@ -1,0 +1,25 @@
+---
+title: "LCA part of analysis"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+#------------------
+# CHECKS
+#------------------
+ 
+library(readr) #to read csv equipment list and exported data from OneClick
+library(ggplot2) # for plotting
+library(jtools) # for formatting output summary, i.e., using summ() of models
+#library(Gmisc) # for visualizing survey answers...trying sankey diagrams
+library(reshape2) #for ggplot of survey answers
+library(ggpubr) #for using ggarrange to plot multiple figures together 
+#load these last so their function names don't get overridden:
+library(tidyverse) #for everything 
+library(dplyr) #for everything 
+```
+
