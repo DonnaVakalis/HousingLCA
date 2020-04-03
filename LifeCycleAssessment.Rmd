@@ -9,7 +9,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 ```{r}
 #------------------
-# CHECKS
+# LOAD LIBRARIES
 #------------------
  
 library(readxl) #to read csv equipment list and exported data from OneClick
@@ -28,13 +28,24 @@ library(dplyr) #for everything
 #------------------
 # GET DATA
 #------------------
- file.lca <-
-    list.files("./RawData_doNotUpload/LCAdat", pattern = ".xls", full.names=TRUE, recursive = FALSE) %>%
-    lapply(
-        read_excel, 
-        skip=2) %>% # Skip meta-data rows
-        #col_types = '_iii_____d_________________') %>% #choose only columns of interest
-    bind_rows() 
+ 
+dat.lca <- 
+    list.files(path = "./RawData_doNotUpload/LCAdat", # read all excel fileNAMES from the folder
+                       pattern = "*.xls",
+                       full.names = TRUE,
+                       recursive = FALSE) %>% 
+    tbl_df() %>% # make the list into a dataframe, default name of column is "value"
+    rename(filenames = value)%>%
+    mutate(myFiles = purrr::map(filenames, function(x) { 
+        readxl::read_excel(x,
+                           skip=2,
+                           col_types = "text")})) %>% 
+    unnest(myFiles) 
+ 
+
+#------------------
+# ORGANIZE DATA
+#------------------ 
  
 ```
 
