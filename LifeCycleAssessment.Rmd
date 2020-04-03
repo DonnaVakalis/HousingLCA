@@ -26,10 +26,10 @@ library(dplyr) #for everything
 
 ```{r}
 #------------------
-# GET DATA
+# GET FILES
 #------------------
  
-dat.lca <- 
+files.lca <- 
     list.files(path = "./RawData_doNotUpload/LCAdat", # read all excel fileNAMES from the folder
                        pattern = "*.xls",
                        full.names = TRUE,
@@ -47,5 +47,19 @@ dat.lca <-
 # ORGANIZE DATA
 #------------------ 
  
+dat.lca <-
+    files.lca %>%
+    select(c(2,6,10,11,14,16)) %>% # keep only columns of interest for this analysis
+    rename (GWP = 'Global warming kg CO2e') %>%  
+    rename(ID=Comment)  # this is the ID for the component that corresponds with spreadsheet naming convention
+  
+sums.lca <-
+    dat.lca %>%
+    drop_na(ID) %>%
+    summarise(N=sum(GWP))
+#convert GWP to numeric!
+
+    
+    
 ```
 
