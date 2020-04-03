@@ -36,7 +36,7 @@ dat.lca <-
                        recursive = FALSE) %>% 
     tbl_df() %>% # make the list into a dataframe, default name of column is "value"
     rename(filenames = value)%>%
-    mutate(myFiles = purrr::map(filenames, function(x) { 
+    mutate(myFiles = purrr::map(filenames, function(x) {  #for each filename, read in the file (gets nested)
         readxl::read_excel(x,
                            skip=2,
                            col_types = "text")})) %>% 
