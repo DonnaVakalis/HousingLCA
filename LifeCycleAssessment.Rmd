@@ -12,7 +12,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 # CHECKS
 #------------------
  
-library(readr) #to read csv equipment list and exported data from OneClick
+library(readxl) #to read csv equipment list and exported data from OneClick
 library(ggplot2) # for plotting
 library(jtools) # for formatting output summary, i.e., using summ() of models
 #library(Gmisc) # for visualizing survey answers...trying sankey diagrams
@@ -21,5 +21,20 @@ library(ggpubr) #for using ggarrange to plot multiple figures together
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
+```
+
+
+```{r}
+#------------------
+# GET DATA
+#------------------
+ file.lca <-
+    list.files("./RawData_doNotUpload/LCAdat", pattern = ".xls", full.names=TRUE, recursive = FALSE) %>%
+    lapply(
+        read_excel, 
+        skip=2) %>% # Skip meta-data rows
+        #col_types = '_iii_____d_________________') %>% #choose only columns of interest
+    bind_rows() 
+ 
 ```
 
