@@ -51,11 +51,23 @@ dat.lca <-
     files.lca %>%
     select(c(2,6,10,11,14,16)) %>% # keep only columns of interest for this analysis
     rename (GWP = 'Global warming kg CO2e') %>%  
-    rename(ID=Comment)  # this is the ID for the component that corresponds with spreadsheet naming convention
+    rename(ID=Comment) %>%  # this is the ID for the component that corresponds with spreadsheet naming convention
+    na.omit()
   
+#------------------
+# MANUALLY ADD MATERIALS
+#------------------ 
+
+
+
+#------------------
+# CALCUATE SUMS
+#------------------ 
+
 sums.lca <-
     dat.lca %>%
-    drop_na(ID) %>%
+    mutate(GWP=as.numeric(GWP))%>%
+    group_by(ID)%>%
     summarise(N=sum(GWP))
 #convert GWP to numeric!
 
