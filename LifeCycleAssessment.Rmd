@@ -60,7 +60,7 @@ dat.lca <-
 
 dat.extra <- # this information was collected separately and manually
     data.frame("Name"=c("Heating motor","Reflective panel","Suction guide"),
-               "ID"=c("mtr_1_siem","ref_3_mtx","pum_2_arm"),
+               "ID"=c("mtr_1_siem","ref_3_mtx","suc_2_arm"),
                 "GWP"=c(119.66,3.2536,129.80),
                 "Lifespan"=c(18,10,20))
 
@@ -73,12 +73,16 @@ dat.all<- # combine dataframes
 # CALCUATE SUMS
 #------------------ 
 
-sums.byEquipement <-
+sums.byEquipment <-
     dat.all%>%
     group_by(ID)%>%
-    summarise(GWP=sum(GWP),
-              GWP.per.yr=sum(GWP)/mean(Lifespan)) 
-
+    summarise(GWP.per.unit=sum(GWP),Lifespan=mean(Lifespan)) %>%
+    mutate(Qty=c(2,1,2,2,3,2,1,1,1,1,2,1364,1,372),
+           GWP.total=GWP.per.unit*Qty,
+           GWP.per.yr.per.unit= GWP.per.unit/Lifespan)
+        
+    
+ 
 sums.bySite <-
     dat.all %>%
     group_by(siteID) %>%
