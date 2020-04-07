@@ -13,11 +13,6 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 #------------------
  
 library(readxl) #to read csv equipment list and exported data from OneClick
-library(ggplot2) # for plotting
-library(jtools) # for formatting output summary, i.e., using summ() of models
-#library(Gmisc) # for visualizing survey answers...trying sankey diagrams
-library(reshape2) #for ggplot of survey answers
-library(ggpubr) #for using ggarrange to plot multiple figures together 
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
@@ -50,28 +45,45 @@ files.lca <-
 dat.lca <-
     files.lca %>%
     select(c(2,6,10,11,14,16)) %>% # keep only columns of interest for this analysis
-    rename (GWP = 'Global warming kg CO2e') %>%  
+    rename(GWP= 'Global warming kg CO2e') %>% # name compliant
+    rename(Lifespan= 'Service life')%>% # name compliant
     rename(ID=Comment) %>%  # this is the ID for the component that corresponds with spreadsheet naming convention
-    na.omit()
+    na.omit() %>%  #this drops the rows with electricity which are irrelevant for this analysis
+    mutate(GWP= as.numeric(GWP)) %>% #when the file is read it originally was converted to text, need it to be numeric 
+    mutate(Lifespan = as.numeric(Lifespan)) %>%
+    filter(Section!="D") %>% 
+    filter(Section != "B4-B5")
   
 #------------------
-# MANUALLY ADD MATERIALS
+# ADD EXTRA INFORMATION
 #------------------ 
 
+dat.extra <- # this information was collected separately and manually
+    data.frame("Name"=c("Heating motor","Reflective panel","Suction guide"),
+               "ID"=c("mtr_1_siem","ref_3_mtx","pum_2_arm"),
+                "GWP"=c(119.66,3.2536,129.80),
+                "Lifespan"=c(18,10,20))
 
+dat.all<- # combine dataframes 
+    merge(dat.lca,dat.extra,all = TRUE) %>%
+    mutate (siteID = as.numeric(sub("^\\D*(\\d+).*$", "\\1", ID))) #extract the number from the ID to get the site
+    
 
 #------------------
 # CALCUATE SUMS
 #------------------ 
 
-sums.lca <-
-    dat.lca %>%
-    mutate(GWP=as.numeric(GWP))%>%
+sums.byEquipement <-
+    dat.all%>%
     group_by(ID)%>%
-    summarise(N=sum(GWP))
-#convert GWP to numeric!
+    summarise(GWP=sum(GWP),
+              GWP.per.yr=sum(GWP)/mean(Lifespan)) 
 
-    
+sums.bySite <-
+    dat.all %>%
+    group_by(siteID) %>%
+    summarize(N=sum(GWP))
+ 
     
 ```
 
