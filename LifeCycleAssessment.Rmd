@@ -65,15 +65,15 @@ dat.extra <- # this information was collected separately and manually
                 "Lifespan"=c(18,10,20))
 
 dat.all<- # combine dataframes 
-    merge(dat.lca,dat.extra,all = TRUE) %>%
-    mutate (siteID = as.numeric(sub("^\\D*(\\d+).*$", "\\1", ID))) #extract the number from the ID to get the site
+    merge(dat.lca,dat.extra,all = TRUE)  
+    
     
 
 #------------------
 # CALCUATE SUMS
 #------------------ 
 
-sums.byEquipment <-
+sums.byEquipment <- # sums for each piece of equipment, plus totals (e.g., x number of pieces),plus per year of service life
     dat.all%>%
     group_by(ID)%>%
     summarise(GWP.per.unit=sum(GWP),Lifespan=mean(Lifespan)) %>%
@@ -83,10 +83,11 @@ sums.byEquipment <-
         
     
  
-sums.bySite <-
-    dat.all %>%
+sums.bySite <-  # sums by site, taking the totals of equipment at each site
+    sums.byEquipment %>%
+    mutate (siteID = as.numeric(sub("^\\D*(\\d+).*$", "\\1", ID))) %>% #extract the number from the ID to get the site
     group_by(siteID) %>%
-    summarize(N=sum(GWP))
+    summarize(N=sum(GWP.total))
  
     
 ```
