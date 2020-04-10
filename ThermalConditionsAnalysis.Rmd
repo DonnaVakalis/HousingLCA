@@ -715,38 +715,44 @@ p<- ggarrange(plot.S, plot.W, ncol=2, nrow=1, common.legend = TRUE, legend="righ
 ggsave(path="plots_doNotUpload", filename="results_2.pdf", width = 10, height = 4) 
 rm(p)
 
+ 
+#------------------
+# HEAT MAPS
+#------------------
+
 # Make a transition matrix showing the movement between thermal comfort pre and post
 trn_mtrx_summer <-
   with(dat.surv.all,
        table(Pre_Summer, 
              Post_Summer)) 
-htmlTable(trn_mtrx_summer, title = "Summer Pre/Post", ctable = TRUE)
+#htmlTable(trn_mtrx_summer, title = "Summer Pre/Post", ctable = TRUE)
 
 
 trn_mtrx_winter <-
   with(dat.surv.all,
        table(Pre_Winter, 
              Post_Winter)) 
-htmlTable(trn_mtrx_winter, title = "Winter Pre/Post", ctable = TRUE)
+#htmlTable(trn_mtrx_winter, title = "Winter Pre/Post", ctable = TRUE)
+#transitionPlot(trn_mtrx_winter)
 
-transitionPlot(trn_mtrx_winter)
-
- 
-#------------------
-# HEAT MAPS
-#------------------
- 
 #Summer Survey Data Heatmap
 df.heatmp.smmr <- as.data.frame(trn_mtrx_summer)
-ggplot(data = df.heatmp.smmr , aes(x = Pre_Summer, y = Post_Summer)) +
+Heat.map.summer<-
+  ggplot(data = df.heatmp.smmr , aes(x = Pre_Summer, y = Post_Summer)) +
   geom_tile(aes(fill = Freq)) +
   scale_fill_gradient(low="white", high="black") 
 
 #Winter Survey Data Heatmap
 df.heatmp.wntr <- as.data.frame(trn_mtrx_winter)
-ggplot(data = df.heatmp.wntr, aes(x = Pre_Winter, y = Post_Winter)) +
+Heat.map.winter<-
+  ggplot(data = df.heatmp.wntr, aes(x = Pre_Winter, y = Post_Winter)) +
   geom_tile(aes(fill = Freq)) +
   scale_fill_gradient(low="white", high="black") 
+
+p<- ggarrange(Heat.map.summer, Heat.map.winter, ncol=2, nrow=1, common.legend = TRUE, legend="right")
+#annotate_figure(p, top=text_grob("How Comfortable are you in different rooms of your apartment?"))
+ggsave(path="plots_doNotUpload", filename="results_4.pdf", width = 10, height = 4) 
+rm(p)
  
 #------------------
 # CHECKS
