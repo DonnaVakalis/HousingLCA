@@ -678,7 +678,7 @@ dat.surv.all <-
 # make the plot for Summer
 plot.S<-
     dat.surv.all %>%
-    select(murb,Pre_Summer,Post_Summer) %>%
+    dplyr::select(murb,Pre_Summer,Post_Summer) %>%
     rename(Pre = Pre_Summer, Post = Post_Summer) %>%
     melt(id="murb")%>%
     na.omit() %>%
@@ -695,7 +695,7 @@ plot.S<-
 # make the plot for Winter
 plot.W<-
     dat.surv.all %>%
-    select(murb,Pre_Winter,Post_Winter) %>%
+    dplyr::select(murb,Pre_Winter,Post_Winter) %>%
     rename(Pre = Pre_Winter, Post = Post_Winter) %>%
     melt(id="murb")%>%
     na.omit() %>%
