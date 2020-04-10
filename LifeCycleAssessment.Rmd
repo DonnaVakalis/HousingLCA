@@ -44,7 +44,7 @@ files.lca <-
  
 dat.lca <-
     files.lca %>%
-    select(c(2,6,10,11,14,16)) %>% # keep only columns of interest for this analysis
+    dplyr::select(c(2,6,10,11,14,16)) %>% # keep only columns of interest for this analysis
     rename(GWP= 'Global warming kg CO2e') %>% # name compliant
     rename(Lifespan= 'Service life')%>% # name compliant
     rename(ID=Comment) %>%  # this is the ID for the component that corresponds with spreadsheet naming convention
@@ -77,7 +77,7 @@ sums.byEquipment <- # sums for each piece of equipment, plus totals (e.g., x num
     dat.all%>%
     group_by(ID)%>%
     summarise(GWP.per.unit=sum(GWP),Lifespan=mean(Lifespan)) %>%
-    mutate(Qty=c(2,1,2,2,3,2,1,1,1,1,2,1364,1,372),
+    mutate(Qty=c(2,1,2,2,3,2,1,1,1,1,2,1364,1,372,369),
            GWP.total=GWP.per.unit*Qty,
            GWP.per.yr.per.unit= GWP.per.unit/Lifespan)
         
