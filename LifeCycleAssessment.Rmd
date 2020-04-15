@@ -101,7 +101,8 @@ sums.Site3<-
     sums.byEquipment %>%
     mutate(GWP.total.per.year=GWP.total/Lifespan) %>%
     mutate (siteID = as.numeric(sub("^\\D*(\\d+).*$", "\\1", ID))) %>% #extract the number from the ID to get the site %>%
-    filter(siteID==3)  
+    filter(siteID==3) %>%
+    mutate(Percentage.of.GWP = GWP.total/sum(GWP.total))
  
     
     
