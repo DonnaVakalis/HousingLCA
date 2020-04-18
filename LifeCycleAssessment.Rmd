@@ -97,13 +97,24 @@ sums.by.phase <- # which sections contribute most?
     group_by(Section) %>%
     summarise(GWP=sum(GWP))
 
+
+# Manually cateogize and add cost data for categories        
+# We want to add a factor variable for the category of retrofit action, to enable grouping equipment together
+# We have cost data by site and factor to add
 sums.gwp<-
     sums.byEquipment %>%
     mutate(GWP.total.per.year=GWP.total/Lifespan) %>%
     mutate (siteID = as.numeric(sub("^\\D*(\\d+).*$", "\\1", ID))) %>% #extract the number from the ID to get the site %>%
-    mutate(Percentage.of.GWP = GWP.total/sum(GWP.total))%>%
-    mutate(action= as.factor(if ID == "ahu"))
+    mutate(Percentage.of.GWP = GWP.total/sum(GWP.total)) %>%
+    mutate(Retrofit.action = as.factor(case_when(
+            grepl("ahu",ID) ~ "AHU",
+            grepl("blr",ID)|grepl("pad",ID) ~ "Boiler",
+            grepl("ref",ID) ~ "Radiator",
+            grepl("tstat",ID) ~ "Thermostat",
+            grepl("mtr",ID) ~ "Heating")))
  
+   
+  
     
     
  
