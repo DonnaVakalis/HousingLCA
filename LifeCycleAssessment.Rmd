@@ -108,7 +108,7 @@ sums.gwp<-
     mutate(Percentage.of.GWP = GWP.total/sum(GWP.total)) %>%
     mutate(Retrofit.action = as.factor(case_when(
             grepl("ahu",ID) ~ "AHU",
-            grepl("blr",ID)|grepl("pad",ID) ~ "Boiler",
+            grepl("blr",ID)|grepl("pad",ID)|grepl("chm",ID)|grepl("suc",ID)|grepl("pum",ID) ~ "Boiler",
             grepl("ref",ID) ~ "Radiator",
             grepl("tstat",ID) ~ "Thermostat",
             grepl("mtr",ID) ~ "Heating")))
