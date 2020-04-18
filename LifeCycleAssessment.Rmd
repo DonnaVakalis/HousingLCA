@@ -111,7 +111,39 @@ sums.gwp<-
             grepl("blr",ID)|grepl("pad",ID)|grepl("chm",ID)|grepl("suc",ID)|grepl("pum",ID) ~ "Boiler",
             grepl("ref",ID) ~ "Radiator",
             grepl("tstat",ID) ~ "Thermostat",
-            grepl("mtr",ID) ~ "Heating")))
+            grepl("mtr",ID) ~ "Heating"))) %>%
+    group_by(siteID,Retrofit.action) %>%
+    summarise(GWP.by.action.per.year=sum(GWP.total.per.year)) 
+  
+dat.for.plot<-
+    reshape(sums.gwp, 
+        direction = "long",
+        varying = list(names(sums.gwp)[1:4]),
+        v.names = "Value",
+        idvar = c("GWP.by.action.per.year")
+        #timevar = "Year",
+       # times = 1950:1954)    
+
+  nrow(sums.gwp) 
+  
+  mutate(Cost= c(476109,227801,4989,327035,970839,385398,246598,21358,337961))
+
+
+
+dat.for.plot<-
+    sums.gwp   
+
+dat.for.plot<-merge(dat.for.plot,Cost)
+     
+
+# Visualize
+    ggplot(sums.gwp, aes(x = siteID,
+                         y=GWP.by.action.per.year,  
+                         fill = Retrofit.action ) ) + 
+    geom_bar( stat = "identity", position = "stack" ) +
+    #coord_flip() +
+    scale_fill_brewer( palette = "YlGnBu" ) +
+    theme_minimal() + theme( legend.position = "bottom" )
  
    
   
