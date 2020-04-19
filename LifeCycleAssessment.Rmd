@@ -16,6 +16,7 @@ library(readxl) #to read csv equipment list and exported data from OneClick
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
+library(reshape2)
 ```
 
 
@@ -115,26 +116,17 @@ sums.gwp<-
     group_by(siteID,Retrofit.action) %>%
     summarise(GWP.by.action.per.year=sum(GWP.total.per.year)) 
   
-dat.for.plot<-
-    reshape(sums.gwp, 
-        direction = "long",
-        varying = list(names(sums.gwp)[1:4]),
-        v.names = "Value",
-        idvar = c("GWP.by.action.per.year")
-        #timevar = "Year",
-       # times = 1950:1954)    
-
-  nrow(sums.gwp) 
+ 
+dat.cost <- 
+    data.frame(Cost.per.retrofit.action = c(476109,227801,4989,327035,970839,385398,246598,21358,337961))
   
-  mutate(Cost= c(476109,227801,4989,327035,970839,385398,246598,21358,337961))
-
-
-
 dat.for.plot<-
-    sums.gwp   
-
-dat.for.plot<-merge(dat.for.plot,Cost)
-     
+    data.frame(sums.gwp,dat.cost) %>%
+    melt(
+        id.vars = c("siteID","Retrofit.action"),
+        measure.vars = c("GWP.by.action.per.year","Cost.per.retrofit.action"),
+        value.name = "Amount")
+    
 
 # Visualize
     ggplot(sums.gwp, aes(x = siteID,
