@@ -101,7 +101,7 @@ sums.by.phase <- # which sections contribute most?
 
 # Manually cateogize and add cost data for categories        
 # We want to add a factor variable for the category of retrofit action, to enable grouping equipment together
-# We have cost data by site and factor to add
+
 sums.gwp<-
     sums.byEquipment %>%
     mutate(GWP.total.per.year=GWP.total/Lifespan) %>%
@@ -117,23 +117,41 @@ sums.gwp<-
     summarise(GWP.by.action.per.year=sum(GWP.total.per.year)) 
   
  
-dat.cost <- 
-    data.frame(Cost.per.retrofit.action = c(476109,227801,4989,327035,970839,385398,246598,21358,337961))
+dat.cost <- # We have cost data by site and factor to add
+    data.frame(Cost.per.retrofit.action = c(476.109,227.801,498.9,327.035,970.839,385.398,246.598,21.358,337.961))
   
-dat.for.plot<-
+dat.for.plot<-  # reshape long format, to be able to make a barplot, facetted
     data.frame(sums.gwp,dat.cost) %>%
     melt(
         id.vars = c("siteID","Retrofit.action"),
         measure.vars = c("GWP.by.action.per.year","Cost.per.retrofit.action"),
-        value.name = "Amount")
+        value.name = "Amount") 
+
+# We also have new data from the utility bills of ACTUAL energy consumed
+# But this is at the site level, i.e., not attributed to retrofit action
+# So we want to add this in, and first need a new factor level "ALL":
+dat.for.plot$Retrofit.action <-
+    factor(dat.for.plot$Retrofit.action, levels = c(levels(dat.for.plot$Retrofit.action),"ALL"))
+#Similarly, add a factor to the column "variable" for "GWP.savings"
+dat.for.plot$variable <-
+    factor(dat.for.plot$variable, levels = c(levels(dat.for.plot$variable),"GWP.delta"))
+
+dat.GWP.savings <- #new rows to add GWP of annual natural gas use delta, enter as: SiteID, retrofit.action=ALL, variable, amount
+    c("1",as.factor("ALL"),as.factor("GWP.savings"),1234)
+    
+iris$Species <- factor(iris$Species, levels = c(levels(iris$Species), "Echeveria"))
+
+dat.for.plot <-
+    rbind(dat.for.plot,dat.GWP.savings)
     
 
 # Visualize
-    ggplot(sums.gwp, aes(x = siteID,
-                         y=GWP.by.action.per.year,  
+    ggplot(dat.for.plot, aes(x = variable,
+                         y=Amount,  
                          fill = Retrofit.action ) ) + 
     geom_bar( stat = "identity", position = "stack" ) +
-    #coord_flip() +
+    facet_grid(siteID~.) +
+    coord_flip() +
     scale_fill_brewer( palette = "YlGnBu" ) +
     theme_minimal() + theme( legend.position = "bottom" )
  
