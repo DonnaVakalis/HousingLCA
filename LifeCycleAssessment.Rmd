@@ -136,13 +136,21 @@ dat.for.plot$Retrofit.action <-
 dat.for.plot$variable <-
     factor(dat.for.plot$variable, levels = c(levels(dat.for.plot$variable),"GWP.delta"))
 
-dat.GWP.savings <- #new rows to add GWP of annual natural gas use delta, enter as: SiteID, retrofit.action=ALL, variable, amount
-    c("1",as.factor("ALL"),as.factor("GWP.savings"),1234)
-    
-iris$Species <- factor(iris$Species, levels = c(levels(iris$Species), "Echeveria"))
+ #new rows to add GWP of annual natural gas use delta, enter as: SiteID, retrofit.action=ALL, variable, amount
+siteID <-
+    c("1","2","3")
+Retrofit.action<-
+    "ALL"
+variable<-
+    "GWP.delta"
+Amount<-
+    c(-61978,-274861,68432)
+dat.GWP.delta<-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+      
 
 dat.for.plot <-
-    rbind(dat.for.plot,dat.GWP.savings)
+    rbind(dat.for.plot,dat.GWP.delta)
     
 
 # Visualize
