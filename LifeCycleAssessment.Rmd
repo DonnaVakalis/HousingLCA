@@ -119,13 +119,24 @@ sums.gwp<-
             grepl("mtr",ID) ~ "Heating"))) %>%
     group_by(siteID,Retrofit.action) %>%
     summarise(GWP.by.action.per.year=sum(GWP.total.per.year)) 
-  
- 
+
+
 dat.cost <- # We have cost data by site and factor to add
     data.frame(Cost.per.retrofit.action = c(476.109,227.801,498.9,327.035,970.839,385.398,246.598,21.358,337.961))
   
 dat.for.plot<-  # reshape long format, to be able to make a barplot, facetted
-    data.frame(sums.gwp,dat.cost) %>%
+    data.frame(sums.gwp,dat.cost) 
+ 
+ dat.averages<-
+    dat.for.plot %>%
+    group_by(Retrofit.action) %>%
+    summarize(GWP.by.action.per.year=mean(GWP.by.action.per.year),
+              Cost.per.retrofit.action=mean(Cost.per.retrofit.action)) %>%
+    mutate(siteID=4) 
+
+
+dat.for.plot<-
+    merge(dat.averages,dat.for.plot) 
     melt(
         id.vars = c("siteID","Retrofit.action"),
         measure.vars = c("GWP.by.action.per.year","Cost.per.retrofit.action"),
@@ -157,20 +168,24 @@ dat.for.plot <-
     rbind(dat.for.plot,dat.GWP.delta)
     
 
-# Visualize
-    ggplot(dat.for.plot, aes(x = siteID,
+# Visualize as bar plots, stacked and faceted by GWP/$
+ggplot(dat.for.plot, aes(x = siteID,
                          y=Amount,  
                          fill = Retrofit.action ) ) + 
     geom_bar( stat = "identity", position = "stack" ) +
     facet_grid(.~variable) +
     #coord_flip() +
     scale_fill_brewer( palette = "YlGnBu" ) +
-    theme_minimal() + theme( legend.position = "bottom" )
- 
-   
-  
-    
-    
+    theme_minimal() + theme( legend.position = "bottom" )  
+
+ggsave(
+        filename= "GWP_and_cost.pdf",
+        plot = last_plot(),
+        device = NULL,
+        path = "plots_doNotUpload",
+        scale = 1,
+        dpi = 300,
+        limitsize = FALSE)
  
     
 ```
