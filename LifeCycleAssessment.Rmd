@@ -56,7 +56,7 @@ dat.lca <-
     filter(Section != "B4-B5")
   
 #------------------
-# ADD EXTRA INFORMATION
+# ADD EXTRA GWP INFORMATION
 #------------------ 
 
 dat.extra <- # this information was collected separately and manually
@@ -98,6 +98,10 @@ sums.by.phase <- # which sections contribute most?
     group_by(Section) %>%
     summarise(GWP=sum(GWP))
 
+
+#------------------
+# CALCUATE SUMS WITH COST DATA INCLUDED
+#------------------ 
 
 # Manually cateogize and add cost data for categories        
 # We want to add a factor variable for the category of retrofit action, to enable grouping equipment together
@@ -154,12 +158,12 @@ dat.for.plot <-
     
 
 # Visualize
-    ggplot(dat.for.plot, aes(x = variable,
+    ggplot(dat.for.plot, aes(x = siteID,
                          y=Amount,  
                          fill = Retrofit.action ) ) + 
     geom_bar( stat = "identity", position = "stack" ) +
-    facet_grid(siteID~.) +
-    coord_flip() +
+    facet_grid(.~variable) +
+    #coord_flip() +
     scale_fill_brewer( palette = "YlGnBu" ) +
     theme_minimal() + theme( legend.position = "bottom" )
  
