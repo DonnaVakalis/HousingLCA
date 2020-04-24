@@ -15,10 +15,11 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 #                   #
 # +++++++++++++++++ #
 
- 
+library(knitr) # to make ktable for copy and pasting
 library(readr) #to read csv equipment list and exported data from OneClick
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
+library(plyr) # for ddply
 library(dplyr) #for everything 
 library(reshape2)
 
@@ -29,15 +30,21 @@ library(reshape2)
 # +++++++++++++++++ #
 
 files.lit <- 
-    list.files(path = "RawFiles_do_not_upload/", # read all excel fileNAMES from the folder
+    list.files(path =  "../RawFiles_do_not_upload/", # read all excel fileNAMES from the folder
                        pattern = "*.csv",
                        full.names = TRUE,
                        recursive = FALSE) %>% 
     tbl_df() %>% # make the list into a dataframe, default name of column is "value"
-    rename(Filenames = value)%>%
-    mutate(myFiles = purrr::map(Filenames, function(x) {  #for each filename, read in the file (gets nested)
+    mutate(myFiles = purrr::map(value, function(x) {  #for each filename, read in the file (gets nested)
         read_csv(x)})) %>% 
     unnest(myFiles) 
+
+files.lit %>%
+    drop_na(Year) %>%
+    group_by(value) %>%
+    summarize(n.Cites=sum(Cites),earliest=min(Year)) %>%
+    kable()
+ 
 
 # +++++++++++++++++ #
 #                   # 
@@ -49,13 +56,40 @@ dat.lit <-
     files.lit %>%
     select(Filenames,Title,Year,Cites) %>%  # parse to only the relevant columns
     filter(Cites>1) %>% # get rid of a uncited papers
-    mutate(category = case_when(  #simplify the categories
-            Filenames=="RawFiles_do_not_upload/Energy_Buildings_PoPCites.cs" ~ 1,
-            Filenames == "RawFiles_do_not_upload/Health_Buildings_PoPCites.csv" ~ 2,
-            TRUE ~ 3)) %>%
-    select(-Filenames) %>%
-    group_by(Title) %>%
-    summarize(new_cat = paste(Cateto))
+    mutate(Category = case_when(  #simplify the categories
+            Filenames=="RawFiles_do_not_upload/Energy_Buildings_PoPCites.csv" ~ "Energy",
+            Filenames == "RawFiles_do_not_upload/Health_Buildings_PoPCites.csv" ~ "Health",
+            Filenames=="RawFiles_do_not_upload/IEQ_searchPoPMetrics.csv" ~ "IEQ",
+            TRUE ~ "Other")) %>% 
+    mutate(Category= as.factor(Category)) %>%  
+    select(-Filenames)  
+    
+  
+dat.lit %>%
+    count(Category)
+
+
+test.results<-
+    dat.lit %>%
+    ddply (.,
+         .(Title),
+         mutate,
+         new.cat = paste(.,collapse=" "))
+
+ 
+# example: aggregate(genes ~ probes, data = olap, as.vector)
+# example2 res = ddply(mydata, .(subject), mutate, mn_measure = mean(measure))
+    
+#aggregate(files.lit,Cites ~ Filenames,mean)
+
+#ddply(files.lit, "Filenames", summarize, new.column = paste(, collapse=" "))
+  
+  
+  mutate(new_cat = case_when(  # when belongs to two or more categories give a new cat
+            category == 1 & category == 2 ~ 4,
+            category == 1 & category == 3 ~ 5,
+            category == 2 & category == 3 ~ 6,
+            TRUE ~ 7)) 
     
        
 

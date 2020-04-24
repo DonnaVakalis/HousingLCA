@@ -129,14 +129,19 @@ dat.for.plot<-  # reshape long format, to be able to make a barplot, facetted
  
  dat.averages<-
     dat.for.plot %>%
+    mutate(siteID=4) %>%
     group_by(Retrofit.action) %>%
     summarize(GWP.by.action.per.year=mean(GWP.by.action.per.year),
-              Cost.per.retrofit.action=mean(Cost.per.retrofit.action)) %>%
-    mutate(siteID=4) 
+              Cost.per.retrofit.action=mean(Cost.per.retrofit.action)) 
+    
+dat.averages$SiteID <-
+    as.factor(dat.averages$SiteID) %>%
+    levels(.,c(1,2,3,4))
+ 
 
 
 dat.for.plot<-
-    merge(dat.averages,dat.for.plot) 
+    merge(dat.averages,dat.for.plot, all=TRUE) %>% 
     melt(
         id.vars = c("siteID","Retrofit.action"),
         measure.vars = c("GWP.by.action.per.year","Cost.per.retrofit.action"),
