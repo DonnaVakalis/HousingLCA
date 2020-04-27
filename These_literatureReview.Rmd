@@ -3,9 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ```{r}
 
@@ -15,11 +12,11 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 #                   #
 # +++++++++++++++++ #
 
-library(knitr) # to make ktable for copy and pasting
+library(knitr) # to make kable for copy and pasting
 library(readr) #to read csv equipment list and exported data from OneClick
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
-library(plyr) # for ddply
+ 
 library(dplyr) #for everything 
 library(reshape2)
 
@@ -37,14 +34,22 @@ files.lit <-
     tbl_df() %>% # make the list into a dataframe, default name of column is "value"
     mutate(myFiles = purrr::map(value, function(x) {  #for each filename, read in the file (gets nested)
         read_csv(x)})) %>% 
-    unnest(myFiles) 
+    unnest(myFiles)  
 
+names(files.lit)[names(files.lit) == "value"] <- "Filenames" # did it this way because rename() function wasn't working for me
+
+# Just checking
 files.lit %>%
-    drop_na(Year) %>%
-    group_by(value) %>%
+    drop_na(files.lit$Year) %>%
+    count(names(files.lit)[1]) # note to self: something weird is going on when trying to use column names within pipeline 
+  
+files.lit %>%
+    drop_na(files.lit$Year) %>%
+    group_by(files.lit$Authors)%>%
     summarize(n.Cites=sum(Cites),earliest=min(Year)) %>%
     kable()
  
+help(drop_na)
 
 # +++++++++++++++++ #
 #                   # 
