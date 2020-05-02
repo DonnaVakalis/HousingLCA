@@ -13,6 +13,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 #------------------
  
 library(readxl) #to read csv equipment list and exported data from OneClick
+library(data.table)
 #load these last so their function names don't get overridden:
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
@@ -127,17 +128,32 @@ dat.cost <- # We have cost data by site and factor to add
 dat.for.plot<-  # reshape long format, to be able to make a barplot, facetted
     data.frame(sums.gwp,dat.cost) 
  
- dat.averages<-
+dat.averages<-
     dat.for.plot %>%
-    mutate(siteID=4) %>%
+    mutate(temp.col=4) %>%
+    mutate(siteID = recode_factor(temp.col,
+                                  "4"="4",
+                                  "3"="3",
+                                  "2"="2",
+                                  "1"="1"))
+
+setattr(dat.averages$siteID,"levels",c(1,2,3,4))
+str(dat.averages)
+    dat.averages$SiteID <-  # need to explicitly make this into a factor with levels that will match next merge (1,2,3,4)
+        factor(dat.averages$SiteID) 
+dat.averages<-  
     group_by(Retrofit.action) %>%
     summarize(GWP.by.action.per.year=mean(GWP.by.action.per.year),
               Cost.per.retrofit.action=mean(Cost.per.retrofit.action)) 
-    
-dat.averages$SiteID <-
-    as.factor(dat.averages$SiteID) %>%
-    levels(.,c(1,2,3,4))
  
+
+# example  mutate(Sector = recode_factor(sector,
+                               "Public, 4-year or above" = "Public",
+                               "Private not-for-profit" = "PrivateNP",
+                               "Private for-profit, 4-year or above" = "Private4P"))   
+
+ %>%
+        levels(.,c(1,2,3,4))
 
 
 dat.for.plot<-
