@@ -119,49 +119,39 @@ sums.gwp<-
             grepl("tstat",ID) ~ "Thermostat",
             grepl("mtr",ID) ~ "Heating"))) %>%
     group_by(siteID,Retrofit.action) %>%
-    summarise(GWP.by.action.per.year=sum(GWP.total.per.year)) 
+    summarise(GWP.by.action.per.year=sum(GWP.total.per.year),
+              Lifespan.ave = mean(Lifespan)) 
+     
+    
 
 
 dat.cost <- # We have cost data by site and factor to add
     data.frame(Cost.per.retrofit.action = c(476.109,227.801,498.9,327.035,970.839,385.398,246.598,21.358,337.961))
   
-dat.for.plot<-  # reshape long format, to be able to make a barplot, facetted
+dat.for.plot.tmp<-  # reshape long format, to be able to make a barplot, facetted
     data.frame(sums.gwp,dat.cost) 
  
-dat.averages<-
-    dat.for.plot %>%
-    mutate(temp.col=4) %>%
-    mutate(siteID = recode_factor(temp.col,
-                                  "4"="4",
-                                  "3"="3",
-                                  "2"="2",
-                                  "1"="1"))
-
-setattr(dat.averages$siteID,"levels",c(1,2,3,4))
-str(dat.averages)
-    dat.averages$SiteID <-  # need to explicitly make this into a factor with levels that will match next merge (1,2,3,4)
-        factor(dat.averages$SiteID) 
-dat.averages<-  
-    group_by(Retrofit.action) %>%
-    summarize(GWP.by.action.per.year=mean(GWP.by.action.per.year),
-              Cost.per.retrofit.action=mean(Cost.per.retrofit.action)) 
+dat.averages<- # create a new column for averages, with a fake 'site ID' to be able to include it in facets
+    dat.for.plot.tmp %>%
+    #mutate(tmp.col=4) %>%
+    mutate_at(.vars = vars(Retrofit.action),
+              .funs = as.factor) %>%
+    group_by(Retrofit.action,siteID) %>%
+    mutate(Cost.per.retrofit.action.per.year = Cost.per.retrofit.action/Lifespan.ave) %>%
+    select(-c(Lifespan.ave,Cost.per.retrofit.action)) %>%
+    summarize(GWP.by.action.per.year=mean(GWP.by.action.per.year), # this is the step the averages by retrofit action
+              Cost.per.retrofit.action.per.year = mean(Cost.per.retrofit.action.per.year))
  
-
-# example  mutate(Sector = recode_factor(sector,
-                               "Public, 4-year or above" = "Public",
-                               "Private not-for-profit" = "PrivateNP",
-                               "Private for-profit, 4-year or above" = "Private4P"))   
-
- %>%
-        levels(.,c(1,2,3,4))
-
-
-dat.for.plot<-
-    merge(dat.averages,dat.for.plot, all=TRUE) %>% 
+dat.for.plot<- # finally insert the averages into the main dataframe
+    merge(dat.averages,dat.for.plot.tmp, all=TRUE) %>% 
     melt(
         id.vars = c("siteID","Retrofit.action"),
-        measure.vars = c("GWP.by.action.per.year","Cost.per.retrofit.action"),
-        value.name = "Amount") 
+        measure.vars = c("GWP.by.action.per.year","Cost.per.retrofit.action.per.year"),
+        value.name = "Amount")  %>%
+    mutate(siteID = coalesce(siteID, 4)) %>%
+    mutate_at(.vars = vars(siteID),
+            .funs = as.factor)
+
 
 # We also have new data from the utility bills of ACTUAL energy consumed
 # But this is at the site level, i.e., not attributed to retrofit action
