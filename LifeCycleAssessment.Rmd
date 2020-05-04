@@ -126,10 +126,12 @@ sums.gwp<-
 
 
 dat.cost <- # We have cost data by site and factor to add
-    data.frame(Cost.per.retrofit.action = c(476.109,227.801,498.9,327.035,970.839,385.398,246.598,21.358,337.961))
+    data.frame(Cost.per.retrofit.action = c(476109,227801,498900,327035,970839,385398,246598,21358,337961)) 
   
 dat.for.plot.tmp<-  # reshape long format, to be able to make a barplot, facetted
     data.frame(sums.gwp,dat.cost) 
+
+# quick check: dat.for.plot.tmp %>% group_by(siteID) %>% summarize(sum(Cost.per.retrofit.action))
  
 dat.averages<- # create a new column for averages, with a fake 'site ID' to be able to include it in facets
     dat.for.plot.tmp %>%
@@ -152,6 +154,7 @@ dat.for.plot<- # finally insert the averages into the main dataframe
     mutate_at(.vars = vars(siteID),
             .funs = as.factor)
 
+dat.for.plot %>% group_by(siteID,variable) %>% summarize(sum(Amount))
 
 # We also have new data from the utility bills of ACTUAL energy consumed
 # But this is at the site level, i.e., not attributed to retrofit action
@@ -166,21 +169,58 @@ dat.for.plot$variable <-
 siteID <-
     c("1","2","3")
 Retrofit.action<-
-    "ALL"
+    "TOTAL"
 variable<-
-    "GWP.delta"
+    "GWP.savings.per.year"
 Amount<-
     c(-61978,-274861,68432)
 dat.GWP.delta<-
     data.frame(siteID,Retrofit.action,variable,Amount)
+
+siteID <-
+    c("1","2","3")
+Retrofit.action<-
+    "TOTAL"
+variable<-
+    "GWP.adjusted.savings.per.year"
+Amount<-
+    c(-137782,-274861,-96295)
+dat.GWP.delta.adjusted<-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
+ #new rows to add $ of annual natural gas use delta, enter as: SiteID, retrofit.action=ALL, variable, amount
+siteID <-
+    c("1","2","3")
+Retrofit.action<-
+    "TOTAL"
+variable<-
+    "Utilities.savings.per.year"
+Amount<-
+    c(-20570,-91226,22712)
+dat.utils.delta<-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
+siteID <-
+    c("1","2","3")
+Retrofit.action<-
+    "TOTAL"
+variable<-
+    "Utilities.adjusted.savings.per.year"
+Amount<-
+    c(-45730,-91226,-31960)
+dat.utils.delta.adjusted<-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
       
 
-dat.for.plot <-
-    rbind(dat.for.plot,dat.GWP.delta)
+dat.for.plot2 <-
+    rbind(dat.for.plot,dat.utils.delta,dat.utils.delta.adjusted) 
     
 
+
 # Visualize as bar plots, stacked and faceted by GWP/$
-ggplot(dat.for.plot, aes(x = siteID,
+dat.for.plot2 %>%
+ggplot(aes(x = siteID,
                          y=Amount,  
                          fill = Retrofit.action ) ) + 
     geom_bar( stat = "identity", position = "stack" ) +
@@ -190,7 +230,7 @@ ggplot(dat.for.plot, aes(x = siteID,
     theme_minimal() + theme( legend.position = "bottom" )  
 
 ggsave(
-        filename= "GWP_and_cost.pdf",
+        filename= "GWP_and_cost2.pdf",
         plot = last_plot(),
         device = NULL,
         path = "plots_doNotUpload",
