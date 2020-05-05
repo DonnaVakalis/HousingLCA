@@ -220,6 +220,7 @@ dat.for.plot2 <-
 
 # Visualize as bar plots, stacked and faceted by GWP/$
 dat.for.plot2 %>%
+  filter(variable != "GWP.by.action.per.year") %>%
 ggplot(aes(x = siteID,
                          y=Amount,  
                          fill = Retrofit.action ) ) + 
