@@ -114,10 +114,13 @@ dat.weather <-
     mutate(
         date = as.Date(
             paste(Year,Month,Day, sep = "-"))) %>%
-    dplyr::select(date,`Mean Temp (°C)`) %>%
-    rename(tmp_out =`Mean Temp (°C)`)    # rename to differentiate between indoor/outdoor 
+    dplyr::select(date,'Mean Temp (Â°C)') %>%
+    rename(tmp_out ='Mean Temp (Â°C)')    # rename to differentiate between indoor/outdoor 
 
- 
+# check average Feb (Winter) temperatures pre and post survey
+df.ave.tmp <-
+    dat.weather %>%
+    mutate(Feb.ave = )
 
 ##### Steps 3 & 4) Merge outdoor and indoor data and categorize into pre and post: 
     #  n.b. Pre-retrofit monitoring: weeks 2872 to 2924 (April 1 2015 - April 1 2016)
@@ -1009,5 +1012,4 @@ summary(m1.lmer[[1]])
 
 
 ```
-
 
