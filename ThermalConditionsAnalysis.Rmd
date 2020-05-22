@@ -120,7 +120,14 @@ dat.weather <-
 # check average Feb (Winter) temperatures pre and post survey
 df.ave.tmp <-
     dat.weather %>%
-    mutate(Feb.ave = )
+    mutate(survey.season = 
+             case_when( date %within% interval(ymd("15-01-01"),ymd("15-02-28") ) ~ "pre.wntr",
+                        date %within% interval(ymd("18-01-01"),ymd("18-02-28") ) ~ "post.wntr",
+                        date %within% interval(ymd("14-07-01"),ymd("14-08-28") ) ~ "pre.smmr",
+                        date %within% interval(ymd("17-07-01"),ymd("17-08-28") ) ~ "post.smmr"))
+       
+  
+ 
 
 ##### Steps 3 & 4) Merge outdoor and indoor data and categorize into pre and post: 
     #  n.b. Pre-retrofit monitoring: weeks 2872 to 2924 (April 1 2015 - April 1 2016)
