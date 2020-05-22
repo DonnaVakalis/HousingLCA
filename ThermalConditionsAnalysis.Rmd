@@ -124,7 +124,10 @@ df.ave.tmp <-
              case_when( date %within% interval(ymd("15-01-01"),ymd("15-02-28") ) ~ "pre.wntr",
                         date %within% interval(ymd("18-01-01"),ymd("18-02-28") ) ~ "post.wntr",
                         date %within% interval(ymd("14-07-01"),ymd("14-08-28") ) ~ "pre.smmr",
-                        date %within% interval(ymd("17-07-01"),ymd("17-08-28") ) ~ "post.smmr"))
+                        date %within% interval(ymd("17-07-01"),ymd("17-08-28") ) ~ "post.smmr")) %>%
+  
+    group_by(survey.season)%>%
+    summarize(ave.tmp = mean(tmp_out))
        
   
  
