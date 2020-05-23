@@ -449,7 +449,7 @@ qqline(resid(mixed.lmer1)) # doesn't look great at edges... change to a quasi-bi
 # SUMMARIZE AND VISUALIZE RESULTS OF MODEL 1c ============
 
 # SUMMARIZE
-summ(m1c.lmer[[5]])
+#summ(m1c.lmer[[5]])
 summary(m1c.lmer[[5]])
 anova(m1c.lmer[[5]])
 
