@@ -214,7 +214,8 @@ dat.utils.delta.adjusted<-
       
 
 dat.for.plot2 <-
-    rbind(dat.for.plot,dat.utils.delta,dat.utils.delta.adjusted) 
+    rbind(dat.for.plot,dat.utils.delta,dat.utils.delta.adjusted) %>%
+    mutate(USD = Amount*0.7273) # using average 2020 exchange rate
     
 
 
@@ -223,13 +224,15 @@ dat.for.plot2 %>%
   filter(variable != "GWP.by.action.per.year") %>%
   filter(Retrofit.action != "Heating") %>% # take out heating motor since it contributes to electricity savings not nat gas
 ggplot(aes(x = siteID,
-                         y=Amount,  
+                         y=USD,  
                          fill = Retrofit.action ) ) + 
     geom_bar( stat = "identity", position = "stack" ) +
     facet_grid(.~variable) +
-    #coord_flip() +
+    #geom_text(aes(label=stat(y)), position=position_dodge(width=0.9), vjust=-0.25) +
     scale_fill_brewer( palette = "YlGnBu" ) +
     theme_minimal() + theme( legend.position = "bottom" )  
+    
+  
 
 ggsave(
         filename= "GWP_and_cost2.pdf",
@@ -239,6 +242,12 @@ ggsave(
         scale = 1,
         dpi = 300,
         limitsize = FALSE)
+
+dat.for.plot2 %>%
+    filter(variable != "GWP.by.action.per.year") %>%
+    filter(Retrofit.action != "Heating") %>% # take out heating motor since it contributes to electricity savings not nat gas
+    group_by(siteID,variable) %>%
+    summarize(total.cost=sum(USD)) 
  
     
 ```
