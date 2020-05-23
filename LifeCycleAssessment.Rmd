@@ -221,6 +221,7 @@ dat.for.plot2 <-
 # Visualize as bar plots, stacked and faceted by GWP/$
 dat.for.plot2 %>%
   filter(variable != "GWP.by.action.per.year") %>%
+  filter(Retrofit.action != "Heating") %>% # take out heating motor since it contributes to electricity savings not nat gas
 ggplot(aes(x = siteID,
                          y=Amount,  
                          fill = Retrofit.action ) ) + 
