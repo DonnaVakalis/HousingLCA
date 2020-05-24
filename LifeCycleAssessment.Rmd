@@ -243,12 +243,19 @@ ggsave(
         dpi = 300,
         limitsize = FALSE)
 
+# Get some summary data for each site and in total 
 dat.for.plot2 %>%
     filter(variable != "GWP.by.action.per.year") %>%
     filter(Retrofit.action != "Heating") %>% # take out heating motor since it contributes to electricity savings not nat gas
     group_by(siteID,variable) %>%
     summarize(total.cost=sum(USD)) 
  
+dat.for.plot2 %>%
+    filter(variable != "GWP.by.action.per.year") %>%
+    filter(variable != "Utilities.savings.per.year") %>%
+    filter(Retrofit.action != "Heating") %>% # take out heating motor since it contributes to electricity savings not nat gas
+    #group_by(siteID) %>%
+    summarize(total.cost=sum(USD)) 
     
 ```
 
