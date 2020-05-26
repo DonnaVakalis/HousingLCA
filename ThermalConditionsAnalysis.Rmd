@@ -454,7 +454,7 @@ summary(m1c.lmer[[5]])
 anova(m1c.lmer[[5]])
 
 # VISUALIZE
-ii=5
+ii=3
 (mm_plot <- ggplot(dat.mr[[ii]], aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
       facet_wrap(~locID, nrow=2) +   # a panel for each suite
       geom_point(alpha = 0.2) +
@@ -464,7 +464,14 @@ ii=5
       scale_color_manual(values = c(colour2, colour1))+
       ylim(0,1)
 )
-
+ggsave(
+        filename= "modelled_comfort_3.pdf",
+        plot = last_plot(),
+        device = NULL,
+        path = "plots_doNotUpload",
+        scale = 1,
+        dpi = 300,
+        limitsize = FALSE)
 
 
 # coef(m1c.lmer[[1]])
