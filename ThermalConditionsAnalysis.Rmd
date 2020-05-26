@@ -454,9 +454,9 @@ summary(m1c.lmer[[5]])
 anova(m1c.lmer[[5]])
 
 # VISUALIZE
-ii=3
+ii=6
 (mm_plot <- ggplot(dat.mr[[ii]], aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
-      facet_wrap(~locID, nrow=2) +   # a panel for each suite
+      facet_wrap(~locID, nrow=3) +   # a panel for each suite
       geom_point(alpha = 0.2) +
       theme_classic() +
       geom_line(data = cbind(dat.mr[[ii]], pred = predict(m1c.lmer[[ii]])), aes(y = pred), size = 1) +  # adding predicted line from mixed model 
@@ -465,7 +465,7 @@ ii=3
       ylim(0,1)
 )
 ggsave(
-        filename= "modelled_comfort_3.pdf",
+        filename= "modelled_comfort_6.pdf",
         plot = last_plot(),
         device = NULL,
         path = "plots_doNotUpload",
