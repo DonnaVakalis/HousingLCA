@@ -18,6 +18,7 @@ library(data.table)
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
 library(reshape2)
+ 
 ```
 
 
@@ -257,5 +258,28 @@ dat.for.plot2 %>%
     #group_by(siteID) %>%
     summarize(total.cost=sum(USD)) 
     
+```
+```{r}
+
+#------------------
+# PREPARE DATA FOR APPENDIX
+#------------------
+
+
+dat.apndx <-
+    files.lca %>%
+    dplyr::select(c(2,6,10,11,15,16,17)) %>% # keep only columns of interest for this analysis
+    rename(GWP= 'Global warming kg CO2e') %>% # name compliant
+    rename(Lifespan= 'Service life')%>% # name compliant
+    rename(ID=Comment) %>%  # this is the ID for the component that corresponds with spreadsheet naming convention
+    #na.omit() %>%  #this drops the rows with electricity which are irrelevant for this analysis
+    mutate(GWP= as.numeric(GWP)) %>% #when the file is read it originally was converted to text, need it to be numeric 
+    mutate(Lifespan = as.numeric(Lifespan)) %>%
+    arrange(ID)
+    #filter(Section!="D") %>% 
+    #filter(Section != "B4-B5")
+
+dat.apndx.wide <- pivot_wider(dat.apndx, names_from = Section, values_from=GWP)
+#example df.wide <- pivot_wider(df.long, names_from = Quarter, values_from = Delay) 
 ```
 
