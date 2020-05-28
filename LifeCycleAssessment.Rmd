@@ -18,6 +18,14 @@ library(data.table)
 library(tidyverse) #for everything 
 library(dplyr) #for everything 
 library(reshape2)
+
+# this will require the newest version of tidyr from github 
+devtools::install_github("tidyverse/tidyr") 
+ 
+
+2# troubleshooting
+remove.packages("tibble")
+install.packages("tibble")
  
 ```
 
@@ -279,7 +287,13 @@ dat.apndx <-
     #filter(Section!="D") %>% 
     #filter(Section != "B4-B5")
 
-dat.apndx.wide <- pivot_wider(dat.apndx, names_from = Section, values_from=GWP)
-#example df.wide <- pivot_wider(df.long, names_from = Quarter, values_from = Delay) 
+
+dat.apndx.wide <- 
+    dat.apndx %>%
+    filter(!is.na(ID)) %>% 
+    spread(key = "Section",
+           value = "GWP")
+#example for when pivot_wider is installed dat.apndx.wide <- pivot_wider(dat.apndx, names_from = Section, values_from=GWP)
+# example using reshape reshape(dat1, idvar = "name", timevar = "numbers", direction = "wide") 
 ```
 
