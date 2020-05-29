@@ -293,8 +293,7 @@ dat.apndx <-
     arrange(ID,desc(Section=="A4"))%>% # group by ID, then arrange so that A4 appears first
     mutate(Transportation= na.locf(Transportation,na.rm=F)) %>%
     spread(key = "Section", # pivot wider, spreading out phases A, B, C...
-           value = "GWP") 
-
+           value = "GWP")  
     
 #example for when pivot_wider is installed dat.apndx.wide <- pivot_wider(dat.apndx, names_from = Section, values_from=GWP)
  
