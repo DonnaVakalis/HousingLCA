@@ -255,8 +255,12 @@ install.packages(&quot;tibble&quot;)
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZmlsZXMubGNhIDwtIFxuICAgIGxpc3QuZmlsZXMocGF0aCA9IFwiLi9SYXdEYXRhX2RvTm90VXBsb2FkL0xDQWRhdFwiLCAjIHJlYWQgYWxsIGV4Y2VsIGZpbGVOQU1FUyBmcm9tIHRoZSBmb2xkZXJcbiAgICAgICAgICAgICAgICAgICAgICAgcGF0dGVybiA9IFwiKi54bHNcIixcbiAgICAgICAgICAgICAgICAgICAgICAgZnVsbC5uYW1lcyA9IFRSVUUsXG4gICAgICAgICAgICAgICAgICAgICAgIHJlY3Vyc2l2ZSA9IEZBTFNFKSAlPiUgXG4gICAgdGJsX2RmKCkgJT4lICMgbWFrZSB0aGUgbGlzdCBpbnRvIGEgZGF0YWZyYW1lLCBkZWZhdWx0IG5hbWUgb2YgY29sdW1uIGlzIFwidmFsdWVcIlxuICAgIHJlbmFtZShmaWxlbmFtZXMgPSB2YWx1ZSklPiVcbiAgICBtdXRhdGUobXlGaWxlcyA9IHB1cnJyOjptYXAoZmlsZW5hbWVzLCBmdW5jdGlvbih4KSB7ICAjZm9yIGVhY2ggZmlsZW5hbWUsIHJlYWQgaW4gdGhlIGZpbGUgKGdldHMgbmVzdGVkKVxuICAgICAgICByZWFkeGw6OnJlYWRfZXhjZWwoeCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgIHNraXA9MixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbF90eXBlcyA9IFwidGV4dFwiKX0pKSAlPiUgXG4gICAgdW5uZXN0KG15RmlsZXMpIFxuXG5gYGAifQ== -->
-<pre class="r"><code>files.lca &lt;- 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIy0tLS0tLS0tLS0tLS0tLS0tLVxuIyBHRVQgRklMRVNcbiMtLS0tLS0tLS0tLS0tLS0tLS1cbiBcbmZpbGVzLmxjYSA8LSBcbiAgICBsaXN0LmZpbGVzKHBhdGggPSBcIi4vUmF3RGF0YV9kb05vdFVwbG9hZC9MQ0FkYXRcIiwgIyByZWFkIGFsbCBleGNlbCBmaWxlTkFNRVMgZnJvbSB0aGUgZm9sZGVyXG4gICAgICAgICAgICAgICAgICAgICAgIHBhdHRlcm4gPSBcIioueGxzXCIsXG4gICAgICAgICAgICAgICAgICAgICAgIGZ1bGwubmFtZXMgPSBUUlVFLFxuICAgICAgICAgICAgICAgICAgICAgICByZWN1cnNpdmUgPSBGQUxTRSkgJT4lIFxuICAgIHRibF9kZigpICU+JSAjIG1ha2UgdGhlIGxpc3QgaW50byBhIGRhdGFmcmFtZSwgZGVmYXVsdCBuYW1lIG9mIGNvbHVtbiBpcyBcInZhbHVlXCJcbiAgICByZW5hbWUoZmlsZW5hbWVzID0gdmFsdWUpJT4lXG4gICAgbXV0YXRlKG15RmlsZXMgPSBwdXJycjo6bWFwKGZpbGVuYW1lcywgZnVuY3Rpb24oeCkgeyAgI2ZvciBlYWNoIGZpbGVuYW1lLCByZWFkIGluIHRoZSBmaWxlIChnZXRzIG5lc3RlZClcbiAgICAgICAgcmVhZHhsOjpyZWFkX2V4Y2VsKHgsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICBza2lwPTIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICBjb2xfdHlwZXMgPSBcInRleHRcIil9KSkgJT4lIFxuICAgIHVubmVzdChteUZpbGVzKSBcbiBcblxuIy0tLS0tLS0tLS0tLS0tLS0tLVxuIyBPUkdBTklaRSBEQVRBXG4jLS0tLS0tLS0tLS0tLS0tLS0tIFxuIFxuZGF0LmxjYSA8LVxuICAgIGZpbGVzLmxjYSAlPiVcbiAgICBkcGx5cjo6c2VsZWN0KGMoMiw2LDEwLDExLDE0LDE2KSkgJT4lICMga2VlcCBvbmx5IGNvbHVtbnMgb2YgaW50ZXJlc3QgZm9yIHRoaXMgYW5hbHlzaXNcbiAgICByZW5hbWUoR1dQPSAnR2xvYmFsIHdhcm1pbmcga2cgQ08yZScpICU+JSAjIG5hbWUgY29tcGxpYW50XG4gICAgcmVuYW1lKExpZmVzcGFuPSAnU2VydmljZSBsaWZlJyklPiUgIyBuYW1lIGNvbXBsaWFudFxuICAgIHJlbmFtZShJRD1Db21tZW50KSAlPiUgICMgdGhpcyBpcyB0aGUgSUQgZm9yIHRoZSBjb21wb25lbnQgdGhhdCBjb3JyZXNwb25kcyB3aXRoIHNwcmVhZHNoZWV0IG5hbWluZyBjb252ZW50aW9uXG4gICAgbmEub21pdCgpICU+JSAgI3RoaXMgZHJvcHMgdGhlIHJvd3Mgd2l0aCBlbGVjdHJpY2l0eSB3aGljaCBhcmUgaXJyZWxldmFudCBmb3IgdGhpcyBhbmFseXNpc1xuICAgIG11dGF0ZShHV1A9IGFzLm51bWVyaWMoR1dQKSkgJT4lICN3aGVuIHRoZSBmaWxlIGlzIHJlYWQgaXQgb3JpZ2luYWxseSB3YXMgY29udmVydGVkIHRvIHRleHQsIG5lZWQgaXQgdG8gYmUgbnVtZXJpYyBcbiAgICBtdXRhdGUoTGlmZXNwYW4gPSBhcy5udW1lcmljKExpZmVzcGFuKSkgJT4lXG4gICAgZmlsdGVyKFNlY3Rpb24hPVwiRFwiKSAlPiUgXG4gICAgZmlsdGVyKFNlY3Rpb24gIT0gXCJCNC1CNVwiKVxuICBcbiMtLS0tLS0tLS0tLS0tLS0tLS1cbiMgQUREIEVYVFJBIEdXUCBJTkZPUk1BVElPTlxuIy0tLS0tLS0tLS0tLS0tLS0tLSBcblxuZGF0LmV4dHJhIDwtICMgdGhpcyBpbmZvcm1hdGlvbiB3YXMgY29sbGVjdGVkIHNlcGFyYXRlbHkgYW5kIG1hbnVhbGx5XG4gICAgZGF0YS5mcmFtZShcIk5hbWVcIj1jKFwiSGVhdGluZyBtb3RvclwiLFwiUmVmbGVjdGl2ZSBwYW5lbFwiLFwiU3VjdGlvbiBndWlkZVwiKSxcbiAgICAgICAgICAgICAgIFwiSURcIj1jKFwibXRyXzFfc2llbVwiLFwicmVmXzNfbXR4XCIsXCJzdWNfMl9hcm1cIiksXG4gICAgICAgICAgICAgICAgXCJHV1BcIj1jKDExOS42NiwzLjI1MzYsMTI5LjgwKSxcbiAgICAgICAgICAgICAgICBcIkxpZmVzcGFuXCI9YygxOCwxMCwyMCkpXG5cbmRhdC5hbGw8LSAjIGNvbWJpbmUgZGF0YWZyYW1lcyBcbiAgICBtZXJnZShkYXQubGNhLGRhdC5leHRyYSxhbGwgPSBUUlVFKSAgXG4gICAgXG4gICAgXG5cbiMtLS0tLS0tLS0tLS0tLS0tLS1cbiMgQ0FMQ1VBVEUgU1VNU1xuIy0tLS0tLS0tLS0tLS0tLS0tLSBcblxuc3Vtcy5ieUVxdWlwbWVudCA8LSAjIHN1bXMgZm9yIGVhY2ggcGllY2Ugb2YgZXF1aXBtZW50LCBwbHVzIHRvdGFscyAoZS5nLiwgeCBudW1iZXIgb2YgcGllY2VzKSxwbHVzIHBlciB5ZWFyIG9mIHNlcnZpY2UgbGlmZVxuICAgIGRhdC5hbGwlPiVcbiAgICBncm91cF9ieShJRCklPiVcbiAgICBzdW1tYXJpc2UoR1dQLnBlci51bml0PXN1bShHV1ApLExpZmVzcGFuPW1lYW4oTGlmZXNwYW4pKSAlPiVcbiAgICBtdXRhdGUoUXR5PWMoMiwxLDIsMiwzLDIsMSwxLDEsMSwyLDEzNjQsMSwzNzIsMzY5KSxcbiAgICAgICAgICAgR1dQLnRvdGFsPUdXUC5wZXIudW5pdCpRdHksXG4gICAgICAgICAgIEdXUC5wZXIueXIucGVyLnVuaXQ9IEdXUC5wZXIudW5pdC9MaWZlc3BhbilcbiAgICAgICAgXG4gICAgXG4gXG5zdW1zLmJ5U2l0ZSA8LSAgIyBzdW1zIGJ5IHNpdGUsIHRha2luZyB0aGUgdG90YWxzIG9mIGVxdWlwbWVudCBhdCBlYWNoIHNpdGVcbiAgICBzdW1zLmJ5RXF1aXBtZW50ICU+JVxuICAgIG11dGF0ZShHV1AudG90YWwucGVyLnllYXI9R1dQLnRvdGFsL0xpZmVzcGFuKSAlPiVcbiAgICBtdXRhdGUgKHNpdGVJRCA9IGFzLm51bWVyaWMoc3ViKFwiXlxcXFxEKihcXFxcZCspLiokXCIsIFwiXFxcXDFcIiwgSUQpKSkgJT4lICNleHRyYWN0IHRoZSBudW1iZXIgZnJvbSB0aGUgSUQgdG8gZ2V0IHRoZSBzaXRlXG4gICAgZ3JvdXBfYnkoc2l0ZUlEKSAlPiUgIFxuICAgIHN1bW1hcml6ZShHV1AudG90YWw9c3VtKEdXUC50b3RhbCksICMgdG90YWxzIG9mIGVxdWlwbWVudCBhdCBlYWNoIHNpdGVcbiAgICAgICAgICAgICAgR1dQLnRvdGFsLnBlci55ZWFyPXN1bShHV1AudG90YWwucGVyLnllYXIpKSAjIHN1bXMsIGJ1dCB3aXRoIHdlaWdodGVkIGF2ZXJhZ2UgYW5udWFsIGVtYm9kaWVkIGNhcmJvbiB1c2luZyBzZXJ2aWNlIGxpZmUgb2YgZXF1aXBtZW50XG5cbiBcbnN1bXMuYnkucGhhc2UgPC0gIyB3aGljaCBzZWN0aW9ucyBjb250cmlidXRlIG1vc3Q/XG4gICAgZGF0LmFsbCAlPiVcbiAgICBncm91cF9ieShTZWN0aW9uKSAlPiVcbiAgICBzdW1tYXJpc2UoR1dQPXN1bShHV1ApKVxuXG5cbiMtLS0tLS0tLS0tLS0tLS0tLS1cbiMgQ0FMQ1VBVEUgU1VNUyBXSVRIIENPU1QgREFUQSBJTkNMVURFRFxuIy0tLS0tLS0tLS0tLS0tLS0tLSBcblxuIyBNYW51YWxseSBjYXRlb2dpemUgYW5kIGFkZCBjb3N0IGRhdGEgZm9yIGNhdGVnb3JpZXMgICAgICAgIFxuIyBXZSB3YW50IHRvIGFkZCBhIGZhY3RvciB2YXJpYWJsZSBmb3IgdGhlIGNhdGVnb3J5IG9mIHJldHJvZml0IGFjdGlvbiwgdG8gZW5hYmxlIGdyb3VwaW5nIGVxdWlwbWVudCB0b2dldGhlclxuXG5zdW1zLmd3cDwtXG4gICAgc3Vtcy5ieUVxdWlwbWVudCAlPiVcbiAgICBtdXRhdGUoR1dQLnRvdGFsLnBlci55ZWFyPUdXUC50b3RhbC9MaWZlc3BhbikgJT4lXG4gICAgbXV0YXRlIChzaXRlSUQgPSBhcy5udW1lcmljKHN1YihcIl5cXFxcRCooXFxcXGQrKS4qJFwiLCBcIlxcXFwxXCIsIElEKSkpICU+JSAjZXh0cmFjdCB0aGUgbnVtYmVyIGZyb20gdGhlIElEIHRvIGdldCB0aGUgc2l0ZSAlPiVcbiAgICBtdXRhdGUoUGVyY2VudGFnZS5vZi5HV1AgPSBHV1AudG90YWwvc3VtKEdXUC50b3RhbCkpICU+JVxuICAgIG11dGF0ZShSZXRyb2ZpdC5hY3Rpb24gPSBhcy5mYWN0b3IoY2FzZV93aGVuKFxuICAgICAgICAgICAgZ3JlcGwoXCJhaHVcIixJRCkgfiBcIkFIVVwiLFxuICAgICAgICAgICAgZ3JlcGwoXCJibHJcIixJRCl8Z3JlcGwoXCJwYWRcIixJRCl8Z3JlcGwoXCJjaG1cIixJRCl8Z3JlcGwoXCJzdWNcIixJRCl8Z3JlcGwoXCJwdW1cIixJRCkgfiBcIkJvaWxlclwiLFxuICAgICAgICAgICAgZ3JlcGwoXCJyZWZcIixJRCkgfiBcIlJhZGlhdG9yXCIsXG4gICAgICAgICAgICBncmVwbChcInRzdGF0XCIsSUQpIH4gXCJUaGVybW9zdGF0XCIsXG4gICAgICAgICAgICBncmVwbChcIm10clwiLElEKSB+IFwiSGVhdGluZ1wiKSkpICU+JVxuICAgIGdyb3VwX2J5KHNpdGVJRCxSZXRyb2ZpdC5hY3Rpb24pICU+JVxuICAgIHN1bW1hcmlzZShHV1AuYnkuYWN0aW9uLnBlci55ZWFyPXN1bShHV1AudG90YWwucGVyLnllYXIpLFxuICAgICAgICAgICAgICBMaWZlc3Bhbi5hdmUgPSBtZWFuKExpZmVzcGFuKSkgXG4gICAgIFxuICAgIFxuXG5cbmRhdC5jb3N0IDwtICMgV2UgaGF2ZSBjb3N0IGRhdGEgYnkgc2l0ZSBhbmQgZmFjdG9yIHRvIGFkZFxuICAgIGRhdGEuZnJhbWUoQ29zdC5wZXIucmV0cm9maXQuYWN0aW9uID0gYyg0NzYxMDksMjI3ODAxLDQ5ODkwMCwzMjcwMzUsOTcwODM5LDM4NTM5OCwyNDY1OTgsMjEzNTgsMzM3OTYxKSkgXG4gIFxuZGF0LmZvci5wbG90LnRtcDwtICAjIHJlc2hhcGUgbG9uZyBmb3JtYXQsIHRvIGJlIGFibGUgdG8gbWFrZSBhIGJhcnBsb3QsIGZhY2V0dGVkXG4gICAgZGF0YS5mcmFtZShzdW1zLmd3cCxkYXQuY29zdCkgXG5cbiMgcXVpY2sgY2hlY2s6IGRhdC5mb3IucGxvdC50bXAgJT4lIGdyb3VwX2J5KHNpdGVJRCkgJT4lIHN1bW1hcml6ZShzdW0oQ29zdC5wZXIucmV0cm9maXQuYWN0aW9uKSlcbiBcbmRhdC5hdmVyYWdlczwtICMgY3JlYXRlIGEgbmV3IGNvbHVtbiBmb3IgYXZlcmFnZXMsIHdpdGggYSBmYWtlICdzaXRlIElEJyB0byBiZSBhYmxlIHRvIGluY2x1ZGUgaXQgaW4gZmFjZXRzXG4gICAgZGF0LmZvci5wbG90LnRtcCAlPiVcbiAgICAjbXV0YXRlKHRtcC5jb2w9NCkgJT4lXG4gICAgbXV0YXRlX2F0KC52YXJzID0gdmFycyhSZXRyb2ZpdC5hY3Rpb24pLFxuICAgICAgICAgICAgICAuZnVucyA9IGFzLmZhY3RvcikgJT4lXG4gICAgZ3JvdXBfYnkoUmV0cm9maXQuYWN0aW9uLHNpdGVJRCkgJT4lXG4gICAgbXV0YXRlKENvc3QucGVyLnJldHJvZml0LmFjdGlvbi5wZXIueWVhciA9IENvc3QucGVyLnJldHJvZml0LmFjdGlvbi9MaWZlc3Bhbi5hdmUpICU+JVxuICAgIHNlbGVjdCgtYyhMaWZlc3Bhbi5hdmUsQ29zdC5wZXIucmV0cm9maXQuYWN0aW9uKSkgJT4lXG4gICAgc3VtbWFyaXplKEdXUC5ieS5hY3Rpb24ucGVyLnllYXI9bWVhbihHV1AuYnkuYWN0aW9uLnBlci55ZWFyKSwgIyB0aGlzIGlzIHRoZSBzdGVwIHRoZSBhdmVyYWdlcyBieSByZXRyb2ZpdCBhY3Rpb25cbiAgICAgICAgICAgICAgQ29zdC5wZXIucmV0cm9maXQuYWN0aW9uLnBlci55ZWFyID0gbWVhbihDb3N0LnBlci5yZXRyb2ZpdC5hY3Rpb24ucGVyLnllYXIpKVxuIFxuZGF0LmZvci5wbG90PC0gIyBmaW5hbGx5IGluc2VydCB0aGUgYXZlcmFnZXMgaW50byB0aGUgbWFpbiBkYXRhZnJhbWVcbiAgICBtZXJnZShkYXQuYXZlcmFnZXMsZGF0LmZvci5wbG90LnRtcCwgYWxsPVRSVUUpICU+JSBcbiAgICBtZWx0KFxuICAgICAgICBpZC52YXJzID0gYyhcInNpdGVJRFwiLFwiUmV0cm9maXQuYWN0aW9uXCIpLFxuICAgICAgICBtZWFzdXJlLnZhcnMgPSBjKFwiR1dQLmJ5LmFjdGlvbi5wZXIueWVhclwiLFwiQ29zdC5wZXIucmV0cm9maXQuYWN0aW9uLnBlci55ZWFyXCIpLFxuICAgICAgICB2YWx1ZS5uYW1lID0gXCJBbW91bnRcIikgICU+JVxuICAgIG11dGF0ZShzaXRlSUQgPSBjb2FsZXNjZShzaXRlSUQsIDQpKSAlPiVcbiAgICBtdXRhdGVfYXQoLnZhcnMgPSB2YXJzKHNpdGVJRCksXG4gICAgICAgICAgICAuZnVucyA9IGFzLmZhY3RvcilcblxuZGF0LmZvci5wbG90ICU+JSBncm91cF9ieShzaXRlSUQsdmFyaWFibGUpICU+JSBzdW1tYXJpemUoc3VtKEFtb3VudCkpXG5cbiMgV2UgYWxzbyBoYXZlIG5ldyBkYXRhIGZyb20gdGhlIHV0aWxpdHkgYmlsbHMgb2YgQUNUVUFMIGVuZXJneSBjb25zdW1lZFxuIyBCdXQgdGhpcyBpcyBhdCB0aGUgc2l0ZSBsZXZlbCwgaS5lLiwgbm90IGF0dHJpYnV0ZWQgdG8gcmV0cm9maXQgYWN0aW9uXG4jIFNvIHdlIHdhbnQgdG8gYWRkIHRoaXMgaW4sIGFuZCBmaXJzdCBuZWVkIGEgbmV3IGZhY3RvciBsZXZlbCBcIkFMTFwiOlxuZGF0LmZvci5wbG90JFJldHJvZml0LmFjdGlvbiA8LVxuICAgIGZhY3RvcihkYXQuZm9yLnBsb3QkUmV0cm9maXQuYWN0aW9uLCBsZXZlbHMgPSBjKGxldmVscyhkYXQuZm9yLnBsb3QkUmV0cm9maXQuYWN0aW9uKSxcIkFMTFwiKSlcbiNTaW1pbGFybHksIGFkZCBhIGZhY3RvciB0byB0aGUgY29sdW1uIFwidmFyaWFibGVcIiBmb3IgXCJHV1Auc2F2aW5nc1wiXG5kYXQuZm9yLnBsb3QkdmFyaWFibGUgPC1cbiAgICBmYWN0b3IoZGF0LmZvci5wbG90JHZhcmlhYmxlLCBsZXZlbHMgPSBjKGxldmVscyhkYXQuZm9yLnBsb3QkdmFyaWFibGUpLFwiR1dQLmRlbHRhXCIpKVxuXG4gI25ldyByb3dzIHRvIGFkZCBHV1Agb2YgYW5udWFsIG5hdHVyYWwgZ2FzIHVzZSBkZWx0YSwgZW50ZXIgYXM6IFNpdGVJRCwgcmV0cm9maXQuYWN0aW9uPUFMTCwgdmFyaWFibGUsIGFtb3VudFxuc2l0ZUlEIDwtXG4gICAgYyhcIjFcIixcIjJcIixcIjNcIilcblJldHJvZml0LmFjdGlvbjwtXG4gICAgXCJUT1RBTFwiXG52YXJpYWJsZTwtXG4gICAgXCJHV1Auc2F2aW5ncy5wZXIueWVhclwiXG5BbW91bnQ8LVxuICAgIGMoLTYxOTc4LC0yNzQ4NjEsNjg0MzIpXG5kYXQuR1dQLmRlbHRhPC1cbiAgICBkYXRhLmZyYW1lKHNpdGVJRCxSZXRyb2ZpdC5hY3Rpb24sdmFyaWFibGUsQW1vdW50KVxuXG5zaXRlSUQgPC1cbiAgICBjKFwiMVwiLFwiMlwiLFwiM1wiKVxuUmV0cm9maXQuYWN0aW9uPC1cbiAgICBcIlRPVEFMXCJcbnZhcmlhYmxlPC1cbiAgICBcIkdXUC5hZGp1c3RlZC5zYXZpbmdzLnBlci55ZWFyXCJcbkFtb3VudDwtXG4gICAgYygtMTM3NzgyLC0yNzQ4NjEsLTk2Mjk1KVxuZGF0LkdXUC5kZWx0YS5hZGp1c3RlZDwtXG4gICAgZGF0YS5mcmFtZShzaXRlSUQsUmV0cm9maXQuYWN0aW9uLHZhcmlhYmxlLEFtb3VudClcblxuICNuZXcgcm93cyB0byBhZGQgJCBvZiBhbm51YWwgbmF0dXJhbCBnYXMgdXNlIGRlbHRhLCBlbnRlciBhczogU2l0ZUlELCByZXRyb2ZpdC5hY3Rpb249QUxMLCB2YXJpYWJsZSwgYW1vdW50XG5zaXRlSUQgPC1cbiAgICBjKFwiMVwiLFwiMlwiLFwiM1wiKVxuUmV0cm9maXQuYWN0aW9uPC1cbiAgICBcIlRPVEFMXCJcbnZhcmlhYmxlPC1cbiAgICBcIlV0aWxpdGllcy5zYXZpbmdzLnBlci55ZWFyXCJcbkFtb3VudDwtXG4gICAgYygtMjA1NzAsLTkxMjI2LDIyNzEyKVxuZGF0LnV0aWxzLmRlbHRhPC1cbiAgICBkYXRhLmZyYW1lKHNpdGVJRCxSZXRyb2ZpdC5hY3Rpb24sdmFyaWFibGUsQW1vdW50KVxuXG5zaXRlSUQgPC1cbiAgICBjKFwiMVwiLFwiMlwiLFwiM1wiKVxuUmV0cm9maXQuYWN0aW9uPC1cbiAgICBcIlRPVEFMXCJcbnZhcmlhYmxlPC1cbiAgICBcIlV0aWxpdGllcy5hZGp1c3RlZC5zYXZpbmdzLnBlci55ZWFyXCJcbkFtb3VudDwtXG4gICAgYygtNDU3MzAsLTkxMjI2LC0zMTk2MClcbmRhdC51dGlscy5kZWx0YS5hZGp1c3RlZDwtXG4gICAgZGF0YS5mcmFtZShzaXRlSUQsUmV0cm9maXQuYWN0aW9uLHZhcmlhYmxlLEFtb3VudClcblxuICAgICAgXG5cbmRhdC5mb3IucGxvdDIgPC1cbiAgICByYmluZChkYXQuZm9yLnBsb3QsZGF0LnV0aWxzLmRlbHRhLGRhdC51dGlscy5kZWx0YS5hZGp1c3RlZCkgJT4lXG4gICAgbXV0YXRlKFVTRCA9IEFtb3VudCowLjcyNzMpICMgdXNpbmcgYXZlcmFnZSAyMDIwIGV4Y2hhbmdlIHJhdGVcbiAgICBcblxuXG4jIFZpc3VhbGl6ZSBhcyBiYXIgcGxvdHMsIHN0YWNrZWQgYW5kIGZhY2V0ZWQgYnkgR1dQLyRcbmRhdC5mb3IucGxvdDIgJT4lXG4gIGZpbHRlcih2YXJpYWJsZSAhPSBcIkdXUC5ieS5hY3Rpb24ucGVyLnllYXJcIikgJT4lXG4gIGZpbHRlcihSZXRyb2ZpdC5hY3Rpb24gIT0gXCJIZWF0aW5nXCIpICU+JSAjIHRha2Ugb3V0IGhlYXRpbmcgbW90b3Igc2luY2UgaXQgY29udHJpYnV0ZXMgdG8gZWxlY3RyaWNpdHkgc2F2aW5ncyBub3QgbmF0IGdhc1xuZ2dwbG90KGFlcyh4ID0gc2l0ZUlELFxuICAgICAgICAgICAgICAgICAgICAgICAgIHk9VVNELCAgXG4gICAgICAgICAgICAgICAgICAgICAgICAgZmlsbCA9IFJldHJvZml0LmFjdGlvbiApICkgKyBcbiAgICBnZW9tX2Jhciggc3RhdCA9IFwiaWRlbnRpdHlcIiwgcG9zaXRpb24gPSBcInN0YWNrXCIgKSArXG4gICAgZmFjZXRfZ3JpZCgufnZhcmlhYmxlKSArXG4gICAgI2dlb21fdGV4dChhZXMobGFiZWw9c3RhdCh5KSksIHBvc2l0aW9uPXBvc2l0aW9uX2RvZGdlKHdpZHRoPTAuOSksIHZqdXN0PS0wLjI1KSArXG4gICAgc2NhbGVfZmlsbF9icmV3ZXIoIHBhbGV0dGUgPSBcIllsR25CdVwiICkgK1xuICAgIHRoZW1lX21pbmltYWwoKSArIHRoZW1lKCBsZWdlbmQucG9zaXRpb24gPSBcImJvdHRvbVwiICkgIFxuICAgIFxuICBcblxuZ2dzYXZlKFxuICAgICAgICBmaWxlbmFtZT0gXCJHV1BfYW5kX2Nvc3QyLnBkZlwiLFxuICAgICAgICBwbG90ID0gbGFzdF9wbG90KCksXG4gICAgICAgIGRldmljZSA9IE5VTEwsXG4gICAgICAgIHBhdGggPSBcInBsb3RzX2RvTm90VXBsb2FkXCIsXG4gICAgICAgIHNjYWxlID0gMSxcbiAgICAgICAgZHBpID0gMzAwLFxuICAgICAgICBsaW1pdHNpemUgPSBGQUxTRSlcblxuIyBHZXQgc29tZSBzdW1tYXJ5IGRhdGEgZm9yIGVhY2ggc2l0ZSBhbmQgaW4gdG90YWwgXG5kYXQuZm9yLnBsb3QyICU+JVxuICAgIGZpbHRlcih2YXJpYWJsZSAhPSBcIkdXUC5ieS5hY3Rpb24ucGVyLnllYXJcIikgJT4lXG4gICAgZmlsdGVyKFJldHJvZml0LmFjdGlvbiAhPSBcIkhlYXRpbmdcIikgJT4lICMgdGFrZSBvdXQgaGVhdGluZyBtb3RvciBzaW5jZSBpdCBjb250cmlidXRlcyB0byBlbGVjdHJpY2l0eSBzYXZpbmdzIG5vdCBuYXQgZ2FzXG4gICAgZ3JvdXBfYnkoc2l0ZUlELHZhcmlhYmxlKSAlPiVcbiAgICBzdW1tYXJpemUodG90YWwuY29zdD1zdW0oVVNEKSkgXG4gXG5kYXQuZm9yLnBsb3QyICU+JVxuICAgIGZpbHRlcih2YXJpYWJsZSAhPSBcIkdXUC5ieS5hY3Rpb24ucGVyLnllYXJcIikgJT4lXG4gICAgZmlsdGVyKHZhcmlhYmxlICE9IFwiVXRpbGl0aWVzLnNhdmluZ3MucGVyLnllYXJcIikgJT4lXG4gICAgZmlsdGVyKFJldHJvZml0LmFjdGlvbiAhPSBcIkhlYXRpbmdcIikgJT4lICMgdGFrZSBvdXQgaGVhdGluZyBtb3RvciBzaW5jZSBpdCBjb250cmlidXRlcyB0byBlbGVjdHJpY2l0eSBzYXZpbmdzIG5vdCBuYXQgZ2FzXG4gICAgI2dyb3VwX2J5KHNpdGVJRCkgJT4lXG4gICAgc3VtbWFyaXplKHRvdGFsLmNvc3Q9c3VtKFVTRCkpIFxuICAgIFxuYGBgIn0= -->
+<pre class="r"><code>#------------------
+# GET FILES
+#------------------
+ 
+files.lca &lt;- 
     list.files(path = &quot;./RawData_doNotUpload/LCAdat&quot;, # read all excel fileNAMES from the folder
                        pattern = &quot;*.xls&quot;,
                        full.names = TRUE,
@@ -268,19 +272,226 @@ install.packages(&quot;tibble&quot;)
                            skip=2,
                            col_types = &quot;text&quot;)})) %&gt;% 
     unnest(myFiles) 
-</code></pre>
+ 
+
+#------------------
+# ORGANIZE DATA
+#------------------ 
+ 
+dat.lca &lt;-
+    files.lca %&gt;%
+    dplyr::select(c(2,6,10,11,14,16)) %&gt;% # keep only columns of interest for this analysis
+    rename(GWP= 'Global warming kg CO2e') %&gt;% # name compliant
+    rename(Lifespan= 'Service life')%&gt;% # name compliant
+    rename(ID=Comment) %&gt;%  # this is the ID for the component that corresponds with spreadsheet naming convention
+    na.omit() %&gt;%  #this drops the rows with electricity which are irrelevant for this analysis
+    mutate(GWP= as.numeric(GWP)) %&gt;% #when the file is read it originally was converted to text, need it to be numeric 
+    mutate(Lifespan = as.numeric(Lifespan)) %&gt;%
+    filter(Section!=&quot;D&quot;) %&gt;% 
+    filter(Section != &quot;B4-B5&quot;)
+  
+#------------------
+# ADD EXTRA GWP INFORMATION
+#------------------ 
+
+dat.extra &lt;- # this information was collected separately and manually
+    data.frame(&quot;Name&quot;=c(&quot;Heating motor&quot;,&quot;Reflective panel&quot;,&quot;Suction guide&quot;),
+               &quot;ID&quot;=c(&quot;mtr_1_siem&quot;,&quot;ref_3_mtx&quot;,&quot;suc_2_arm&quot;),
+                &quot;GWP&quot;=c(119.66,3.2536,129.80),
+                &quot;Lifespan&quot;=c(18,10,20))
+
+dat.all&lt;- # combine dataframes 
+    merge(dat.lca,dat.extra,all = TRUE)  
+    
+    
+
+#------------------
+# CALCUATE SUMS
+#------------------ 
+
+sums.byEquipment &lt;- # sums for each piece of equipment, plus totals (e.g., x number of pieces),plus per year of service life
+    dat.all%&gt;%
+    group_by(ID)%&gt;%
+    summarise(GWP.per.unit=sum(GWP),Lifespan=mean(Lifespan)) %&gt;%
+    mutate(Qty=c(2,1,2,2,3,2,1,1,1,1,2,1364,1,372,369),
+           GWP.total=GWP.per.unit*Qty,
+           GWP.per.yr.per.unit= GWP.per.unit/Lifespan)
+        
+    
+ 
+sums.bySite &lt;-  # sums by site, taking the totals of equipment at each site
+    sums.byEquipment %&gt;%
+    mutate(GWP.total.per.year=GWP.total/Lifespan) %&gt;%
+    mutate (siteID = as.numeric(sub(&quot;^\\D*(\\d+).*$&quot;, &quot;\\1&quot;, ID))) %&gt;% #extract the number from the ID to get the site
+    group_by(siteID) %&gt;%  
+    summarize(GWP.total=sum(GWP.total), # totals of equipment at each site
+              GWP.total.per.year=sum(GWP.total.per.year)) # sums, but with weighted average annual embodied carbon using service life of equipment
+
+ 
+sums.by.phase &lt;- # which sections contribute most?
+    dat.all %&gt;%
+    group_by(Section) %&gt;%
+    summarise(GWP=sum(GWP))
+
+
+#------------------
+# CALCUATE SUMS WITH COST DATA INCLUDED
+#------------------ 
+
+# Manually cateogize and add cost data for categories        
+# We want to add a factor variable for the category of retrofit action, to enable grouping equipment together
+
+sums.gwp&lt;-
+    sums.byEquipment %&gt;%
+    mutate(GWP.total.per.year=GWP.total/Lifespan) %&gt;%
+    mutate (siteID = as.numeric(sub(&quot;^\\D*(\\d+).*$&quot;, &quot;\\1&quot;, ID))) %&gt;% #extract the number from the ID to get the site %&gt;%
+    mutate(Percentage.of.GWP = GWP.total/sum(GWP.total)) %&gt;%
+    mutate(Retrofit.action = as.factor(case_when(
+            grepl(&quot;ahu&quot;,ID) ~ &quot;AHU&quot;,
+            grepl(&quot;blr&quot;,ID)|grepl(&quot;pad&quot;,ID)|grepl(&quot;chm&quot;,ID)|grepl(&quot;suc&quot;,ID)|grepl(&quot;pum&quot;,ID) ~ &quot;Boiler&quot;,
+            grepl(&quot;ref&quot;,ID) ~ &quot;Radiator&quot;,
+            grepl(&quot;tstat&quot;,ID) ~ &quot;Thermostat&quot;,
+            grepl(&quot;mtr&quot;,ID) ~ &quot;Heating&quot;))) %&gt;%
+    group_by(siteID,Retrofit.action) %&gt;%
+    summarise(GWP.by.action.per.year=sum(GWP.total.per.year),
+              Lifespan.ave = mean(Lifespan)) 
+     
+    
+
+
+dat.cost &lt;- # We have cost data by site and factor to add
+    data.frame(Cost.per.retrofit.action = c(476109,227801,498900,327035,970839,385398,246598,21358,337961)) 
+  
+dat.for.plot.tmp&lt;-  # reshape long format, to be able to make a barplot, facetted
+    data.frame(sums.gwp,dat.cost) 
+
+# quick check: dat.for.plot.tmp %&gt;% group_by(siteID) %&gt;% summarize(sum(Cost.per.retrofit.action))
+ 
+dat.averages&lt;- # create a new column for averages, with a fake 'site ID' to be able to include it in facets
+    dat.for.plot.tmp %&gt;%
+    #mutate(tmp.col=4) %&gt;%
+    mutate_at(.vars = vars(Retrofit.action),
+              .funs = as.factor) %&gt;%
+    group_by(Retrofit.action,siteID) %&gt;%
+    mutate(Cost.per.retrofit.action.per.year = Cost.per.retrofit.action/Lifespan.ave) %&gt;%
+    select(-c(Lifespan.ave,Cost.per.retrofit.action)) %&gt;%
+    summarize(GWP.by.action.per.year=mean(GWP.by.action.per.year), # this is the step the averages by retrofit action
+              Cost.per.retrofit.action.per.year = mean(Cost.per.retrofit.action.per.year))
+ 
+dat.for.plot&lt;- # finally insert the averages into the main dataframe
+    merge(dat.averages,dat.for.plot.tmp, all=TRUE) %&gt;% 
+    melt(
+        id.vars = c(&quot;siteID&quot;,&quot;Retrofit.action&quot;),
+        measure.vars = c(&quot;GWP.by.action.per.year&quot;,&quot;Cost.per.retrofit.action.per.year&quot;),
+        value.name = &quot;Amount&quot;)  %&gt;%
+    mutate(siteID = coalesce(siteID, 4)) %&gt;%
+    mutate_at(.vars = vars(siteID),
+            .funs = as.factor)
+
+dat.for.plot %&gt;% group_by(siteID,variable) %&gt;% summarize(sum(Amount))
+
+# We also have new data from the utility bills of ACTUAL energy consumed
+# But this is at the site level, i.e., not attributed to retrofit action
+# So we want to add this in, and first need a new factor level &quot;ALL&quot;:
+dat.for.plot$Retrofit.action &lt;-
+    factor(dat.for.plot$Retrofit.action, levels = c(levels(dat.for.plot$Retrofit.action),&quot;ALL&quot;))
+#Similarly, add a factor to the column &quot;variable&quot; for &quot;GWP.savings&quot;
+dat.for.plot$variable &lt;-
+    factor(dat.for.plot$variable, levels = c(levels(dat.for.plot$variable),&quot;GWP.delta&quot;))
+
+ #new rows to add GWP of annual natural gas use delta, enter as: SiteID, retrofit.action=ALL, variable, amount
+siteID &lt;-
+    c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;)
+Retrofit.action&lt;-
+    &quot;TOTAL&quot;
+variable&lt;-
+    &quot;GWP.savings.per.year&quot;
+Amount&lt;-
+    c(-61978,-274861,68432)
+dat.GWP.delta&lt;-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
+siteID &lt;-
+    c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;)
+Retrofit.action&lt;-
+    &quot;TOTAL&quot;
+variable&lt;-
+    &quot;GWP.adjusted.savings.per.year&quot;
+Amount&lt;-
+    c(-137782,-274861,-96295)
+dat.GWP.delta.adjusted&lt;-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
+ #new rows to add $ of annual natural gas use delta, enter as: SiteID, retrofit.action=ALL, variable, amount
+siteID &lt;-
+    c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;)
+Retrofit.action&lt;-
+    &quot;TOTAL&quot;
+variable&lt;-
+    &quot;Utilities.savings.per.year&quot;
+Amount&lt;-
+    c(-20570,-91226,22712)
+dat.utils.delta&lt;-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
+siteID &lt;-
+    c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;)
+Retrofit.action&lt;-
+    &quot;TOTAL&quot;
+variable&lt;-
+    &quot;Utilities.adjusted.savings.per.year&quot;
+Amount&lt;-
+    c(-45730,-91226,-31960)
+dat.utils.delta.adjusted&lt;-
+    data.frame(siteID,Retrofit.action,variable,Amount)
+
+      
+
+dat.for.plot2 &lt;-
+    rbind(dat.for.plot,dat.utils.delta,dat.utils.delta.adjusted) %&gt;%
+    mutate(USD = Amount*0.7273) # using average 2020 exchange rate
+    
+
+
+# Visualize as bar plots, stacked and faceted by GWP/$
+dat.for.plot2 %&gt;%
+  filter(variable != &quot;GWP.by.action.per.year&quot;) %&gt;%
+  filter(Retrofit.action != &quot;Heating&quot;) %&gt;% # take out heating motor since it contributes to electricity savings not nat gas
+ggplot(aes(x = siteID,
+                         y=USD,  
+                         fill = Retrofit.action ) ) + 
+    geom_bar( stat = &quot;identity&quot;, position = &quot;stack&quot; ) +
+    facet_grid(.~variable) +
+    #geom_text(aes(label=stat(y)), position=position_dodge(width=0.9), vjust=-0.25) +
+    scale_fill_brewer( palette = &quot;YlGnBu&quot; ) +
+    theme_minimal() + theme( legend.position = &quot;bottom&quot; )  
+    
+  
+
+ggsave(
+        filename= &quot;GWP_and_cost2.pdf&quot;,
+        plot = last_plot(),
+        device = NULL,
+        path = &quot;plots_doNotUpload&quot;,
+        scale = 1,
+        dpi = 300,
+        limitsize = FALSE)
+
+# Get some summary data for each site and in total 
+dat.for.plot2 %&gt;%
+    filter(variable != &quot;GWP.by.action.per.year&quot;) %&gt;%
+    filter(Retrofit.action != &quot;Heating&quot;) %&gt;% # take out heating motor since it contributes to electricity savings not nat gas
+    group_by(siteID,variable) %&gt;%
+    summarize(total.cost=sum(USD)) 
+ 
+dat.for.plot2 %&gt;%
+    filter(variable != &quot;GWP.by.action.per.year&quot;) %&gt;%
+    filter(variable != &quot;Utilities.savings.per.year&quot;) %&gt;%
+    filter(Retrofit.action != &quot;Heating&quot;) %&gt;% # take out heating motor since it contributes to electricity savings not nat gas
+    #group_by(siteID) %&gt;%
+    summarize(total.cost=sum(USD)) 
+    </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTmV3IG5hbWVzOlxuKiBgMTgxMTkzYCAtPiBgMTgxMTkzLi4uNmBcbiogYDE4MTE5M2AgLT4gYDE4MTE5My4uLjhgXG4qIGBgIC0+IC4uLjEyXG4qIGBgIC0+IC4uLjEzXG4qIGBgIC0+IC4uLjE0XG4qIC4uLlxuTmV3IG5hbWVzOlxuKiBgYCAtPiAuLi4xMVxuIn0= -->
-<pre><code>New names:
-* `181193` -&gt; `181193...6`
-* `181193` -&gt; `181193...8`
-* `` -&gt; ...12
-* `` -&gt; ...13
-* `` -&gt; ...14
-* ...
-New names:
-* `` -&gt; ...11</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0LmFwbmR4IDwtXG4gICAgZmlsZXMubGNhICU+JVxuICAgIGRwbHlyOjpzZWxlY3QoYygyLDYsMTAsMTEsMTUsMTYsMTcpKSAlPiUgIyBrZWVwIG9ubHkgY29sdW1ucyBvZiBpbnRlcmVzdCBmb3IgdGhpcyBhbmFseXNpc1xuICAgIHJlbmFtZShHV1A9ICdHbG9iYWwgd2FybWluZyBrZyBDTzJlJykgJT4lICMgbmFtZSBjb21wbGlhbnRcbiAgICByZW5hbWUoTGlmZXNwYW49ICdTZXJ2aWNlIGxpZmUnKSU+JSAjIG5hbWUgY29tcGxpYW50XG4gICAgcmVuYW1lKElEPUNvbW1lbnQpICU+JSAgIyB0aGlzIGlzIHRoZSBJRCBmb3IgdGhlIGNvbXBvbmVudCB0aGF0IGNvcnJlc3BvbmRzIHdpdGggc3ByZWFkc2hlZXQgbmFtaW5nIGNvbnZlbnRpb25cbiAgICAjbmEub21pdCgpICU+JSAgI3RoaXMgZHJvcHMgdGhlIHJvd3Mgd2l0aCBlbGVjdHJpY2l0eSB3aGljaCBhcmUgaXJyZWxldmFudCBmb3IgdGhpcyBhbmFseXNpc1xuICAgIG11dGF0ZShHV1A9IGFzLm51bWVyaWMoR1dQKSkgJT4lICN3aGVuIHRoZSBmaWxlIGlzIHJlYWQgaXQgb3JpZ2luYWxseSB3YXMgY29udmVydGVkIHRvIHRleHQsIG5lZWQgaXQgdG8gYmUgbnVtZXJpYyBcbiAgICBtdXRhdGUoTGlmZXNwYW4gPSBhcy5udW1lcmljKExpZmVzcGFuKSkgJT4lXG4gICAgYXJyYW5nZShJRCklPiVcbiAgICBmaWx0ZXIoU2VjdGlvbiE9XCJEXCIpICU+JSBcbiAgICBmaWx0ZXIoU2VjdGlvbiAhPSBcIkI0LUI1XCIpICU+JVxuICAgIGZpbHRlcighaXMubmEoSUQpKSAlPiVcbiAgICByZW5hbWUoVHJhbnNwb3J0YXRpb24gPSAnVHJhbnNmb3JtYXRpb24gcHJvY2VzcycpICU+JSAjIGFzc2lnbiB0aGUgdHJhbnNwb3J0YXRpb24gdG8gYWxsIHNlY3Rpb25zLCBzbyB0aGF0IHdlIGNhbiBsYXRlciBrZWVwIGl0IGFzIGEgc2luZ2xlIHJvdyB3aGVuIHVzaW5nICdzcHJlYWQnXG4gICAgbXV0YXRlKFRyYW5zcG9ydGF0aW9uID0gaWZlbHNlKFNlY3Rpb249PVwiQTRcIixUcmFuc3BvcnRhdGlvbixOQSkpJT4lIFxuICAgIGdyb3VwX2J5KElEKSU+JVxuICAgIGFycmFuZ2UoSUQsZGVzYyhTZWN0aW9uPT1cIkE0XCIpKSU+JSAjIGdyb3VwIGJ5IElELCB0aGVuIGFycmFuZ2Ugc28gdGhhdCBBNCBhcHBlYXJzIGZpcnN0XG4gICAgbXV0YXRlKFRyYW5zcG9ydGF0aW9uPSBuYS5sb2NmKFRyYW5zcG9ydGF0aW9uLG5hLnJtPUYpKSAlPiVcbiAgICBzcHJlYWQoa2V5ID0gXCJTZWN0aW9uXCIsICMgcGl2b3Qgd2lkZXIsIHNwcmVhZGluZyBvdXQgcGhhc2VzIEEsIEIsIEMuLi5cbiAgICAgICAgICAgdmFsdWUgPSBcIkdXUFwiKSAlPiVcbiAgICBhcy50aWJibGUoKVxuXG5gYGAifQ== -->
