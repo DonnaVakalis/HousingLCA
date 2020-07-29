@@ -488,16 +488,16 @@ for (i in 1:7) {
         as.numeric(cut_number(dat.mr[[i]]$tmp_out,3))
 }
 
-check = dat.mr[[1]] 
+  
 
-# Model COLDEST outdoor temps
+# Model COLDEST/HOTTEST outdoor temps
 # MODEL X: SAME AS 1B, but restrict to coldest OR hotest days (one model for each of those)
 
 mx.lmer<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
 mx.summary <- list()#Create a list for each summary of model
 for (i in 1:7) {
     input <- dat.mr[[i]] %>%
-        subset(tmp_cat==1) #select coldest 
+        subset(tmp_cat==3) #select outdoor temp tertile
     model1<- lmer(com_upper ~ poly(tmp_out,2) + retrofit_yes + (1|locID),
                  REML=FALSE,
                  data=input)
@@ -510,17 +510,15 @@ rm(model1)
 ```{r}
 
 # SUMMARIZE AND VISUALIZE RESULTS OF MODEL X ============
+ii=1 # MURB ID
 
 # SUMMARIZE
-#summ(m1c.lmer[[5]])
-summary(mx.lmer[[7]])
-#anova(mx.lmer[[1]])
-
+summary(mx.lmer[[ii]])
+ 
 # VISUALIZE
-ii=7
 bg_data <- 
     dat.mr[[ii]] %>% 
-        subset(tmp_cat==1)
+        subset(tmp_cat==3) # set outdoor temp tertile
   
 (mm_plot <- ggplot(bg_data, aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
       facet_wrap(~locID, nrow=2) +   # a panel for each suite
