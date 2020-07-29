@@ -114,8 +114,8 @@ dat.weather <-
     mutate(
         date = as.Date(
             paste(Year,Month,Day, sep = "-"))) %>%
-    dplyr::select(date,'Mean Temp (Â°C)') %>%
-    rename(tmp_out ='Mean Temp (Â°C)')    # rename to differentiate between indoor/outdoor 
+    dplyr::select(date,'Mean Temp (°C)') %>%
+    rename(tmp_out ='Mean Temp (°C)')    # rename to differentiate between indoor/outdoor 
 
 # check average Feb (Winter) temperatures pre and post survey
 df.ave.tmp <-
@@ -476,6 +476,77 @@ ggsave(
 
 # coef(m1c.lmer[[1]])
 
+```
+```{r}
+
+# ADDITIONAL MODEL, ONLY LOWEST AND HIGHEST OUTDOOR TEMPERATURES ============
+
+# Make new variable "tmp_cat"
+# One each for tertile of outdoor temp
+for (i in 1:7) {
+    dat.mr[[i]]$tmp_cat <- 
+        as.numeric(cut_number(dat.mr[[i]]$tmp_out,3))
+}
+
+check = dat.mr[[1]] 
+
+# Model COLDEST outdoor temps
+# MODEL X: SAME AS 1B, but restrict to coldest OR hotest days (one model for each of those)
+
+mx.lmer<- list() #Create a list in which I will save all models (one per building) of one type (e.g., mixed effect, logit)
+mx.summary <- list()#Create a list for each summary of model
+for (i in 1:7) {
+    input <- dat.mr[[i]] %>%
+        subset(tmp_cat==1) #select coldest 
+    model1<- lmer(com_upper ~ poly(tmp_out,2) + retrofit_yes + (1|locID),
+                 REML=FALSE,
+                 data=input)
+    mx.lmer[[i]] <- model1 
+    mx.summary[[i]]<-summary(model1)
+}
+
+rm(model1) 
+```
+```{r}
+
+# SUMMARIZE AND VISUALIZE RESULTS OF MODEL X ============
+
+# SUMMARIZE
+#summ(m1c.lmer[[5]])
+summary(mx.lmer[[7]])
+#anova(mx.lmer[[1]])
+
+# VISUALIZE
+ii=7
+bg_data <- 
+    dat.mr[[ii]] %>% 
+        subset(tmp_cat==1)
+  
+(mm_plot <- ggplot(bg_data, aes(x = tmp_out, y = com_upper, colour = retrofit_yes)) +
+      facet_wrap(~locID, nrow=2) +   # a panel for each suite
+      geom_point(alpha = 0.2) +
+      theme_classic() +
+      geom_line(data = cbind(bg_data, pred = predict(mx.lmer[[ii]])), aes(y = pred), size = 1) +  # adding predicted line from mixed model 
+      theme(legend.position = "bottom") +   
+      scale_color_manual(values = c(colour2, colour1))+
+      ylim(0,1)
+)
+
+```
+
+```{r}
+
+ggsave(
+        filename= "modelled_comfort_6.pdf",
+        plot = last_plot(),
+        device = NULL,
+        path = "plots_doNotUpload",
+        scale = 1,
+        dpi = 300,
+        limitsize = FALSE)
+
+
+# coef(m1c.lmer[[1]])
 ```
 
 
