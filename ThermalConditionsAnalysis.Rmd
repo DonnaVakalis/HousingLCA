@@ -114,8 +114,8 @@ dat.weather <-
     mutate(
         date = as.Date(
             paste(Year,Month,Day, sep = "-"))) %>%
-    dplyr::select(date,'Mean Temp (°C)') %>%
-    rename(tmp_out ='Mean Temp (°C)')    # rename to differentiate between indoor/outdoor 
+    dplyr::select(date,'Mean Temp (?C)') %>%
+    rename(tmp_out ='Mean Temp (?C)')    # rename to differentiate between indoor/outdoor 
 
 # check average Feb (Winter) temperatures pre and post survey
 df.ave.tmp <-
@@ -510,7 +510,7 @@ rm(model1)
 ```{r}
 
 # SUMMARIZE AND VISUALIZE RESULTS OF MODEL X ============
-ii=1 # MURB ID
+ii=7 # MURB ID
 
 # SUMMARIZE
 summary(mx.lmer[[ii]])
@@ -842,14 +842,15 @@ p<- ggarrange(Heat.map.summer, Heat.map.winter, ncol=2, nrow=1, common.legend = 
 #annotate_figure(p, top=text_grob("How Comfortable are you in different rooms of your apartment?"))
 ggsave(path="plots_doNotUpload", filename="results_4.pdf", width = 10, height = 4) 
 rm(p)
+
+
+```
+```{r}
  
 #------------------
 # CHECKS
 #------------------
-check.count_responses<-
-  dat.surv.all %>%
-  group_by(CODE,First_survey, Second_survey) %>%
-  summarize(Respondants = n_distinct(ResponseID))
+
 
 dat.surv.all %>% # check that all responses are accounted for exactly once
   mutate(check_temp_PRE = Pre_S_cold+Pre_S_warm+Pre_S_just.right+Pre_S_DK) %>%
@@ -914,8 +915,88 @@ table(dat.surv.all$murb,dat.surv.all$Post_Summer) %>%
     round(3) %>%
      `*`(100)
  
+```
+
+```{r}
+## Testing Loss to Follow-up 
+
+check.count_responses<-
+  dat.surv.all %>%
+  group_by(First_survey, Second_survey) %>%
+  summarize(Respondants = n_distinct(ResponseID))
+
+# Pre-retrofit respones from those who dropped out
+pop.lost <- 
+    dat.surv.all %>%
+    filter(First_survey == TRUE) %>%
+    filter(is.na(Second_survey)) %>%
+    select(murb,Pre_Summer,Pre_Winter)%>%
+    mutate(Stayed = TRUE)
+
+# For comparison, pre-retrofit responses from those who did not drop out
+pop.stayed <-
+    dat.surv.all %>%
+    filter(First_survey == TRUE) %>%
+    filter(Second_survey == TRUE) %>%
+    select(murb,Pre_Summer,Pre_Winter) %>%
+    mutate(Stayed = FALSE)
+
+dat.followup <-
+    rbind(pop.stayed, pop.lost) 
+
+dat.followup$Pre_Summer <- ordered(dat.followup$Pre_Summer, levels = c("Too cold","Just right","Too warm","Don't know"))
+dat.followup$Pre_Winter <- ordered(dat.followup$Pre_Winter, levels = c("Too cold","Just right","Too warm","Don't know"))
+
+#check.count_responses
+#sapply(pop.lost,class) 
+#sapply(pop.lost,levels)
+#xtabs( ~ murb + Pre_Summer, data = pop.stayed)
+
+
+# VISUALIZE the Proportions in each group (stay versus lost)
+xtabs(~Stayed + Pre_Winter,
+       data = dat.followup)
+
+library(lattice)
+
+histogram(~ Pre_Winter| Stayed,
+          data=dat.followup,
+          layout=c(1,2)      #  columns and rows of individual plots
+          )
+
+# perform Mannâ€“Whitney U test for each Summer/Winter
+
+
+# first need to assign the survey responses to ordinals (1,2,3,4)
+levels(dat.followup$Pre_Summer)[levels(dat.followup$Pre_Summer)=="Too cold"] = as.numeric(1)
+levels(dat.followup$Pre_Summer)[levels(dat.followup$Pre_Summer)=="Just right"] = as.numeric(2)
+levels(dat.followup$Pre_Summer)[levels(dat.followup$Pre_Summer)=="Too warm"] = as.numeric(3)
+levels(dat.followup$Pre_Summer)[levels(dat.followup$Pre_Summer)=="Don't know"] = as.numeric(4)
+dat.followup$Pre_Summer = as.numeric(dat.followup$Pre_Summer)
+
+levels(dat.followup$Pre_Winter)[levels(dat.followup$Pre_Winter)=="Too cold"] = as.numeric(1)
+levels(dat.followup$Pre_Winter)[levels(dat.followup$Pre_Winter)=="Just right"] = as.numeric(2)
+levels(dat.followup$Pre_Winter)[levels(dat.followup$Pre_Winter)=="Too warm"] = as.numeric(3)
+levels(dat.followup$Pre_Winter)[levels(dat.followup$Pre_Winter)=="Don't know"] = as.numeric(4)
+dat.followup$Pre_Winter = as.numeric(dat.followup$Pre_Winter)
+
+xtabs(~Stayed + Pre_Winter,
+       data = dat.followup)
+
+sapply(dat.followup,class) 
+
+# Now perform MW U test
+m1<-wilcox.test(Pre_Summer ~ Stayed, data=dat.followup, exact=FALSE, conf.int=TRUE)
+print(m1)
+# p_value = 0.09146 Can't reject the Null hypothesis that the distributions of both groups are identical, 
+
+m2<-wilcox.test(Pre_Winter~ Stayed, data= dat.followup, exact=FALSE, conf.int=TRUE)
+print(m2)           
+#p_ value = 0.04062 
 
 ```
+
+
 
 ```{r}
 
