@@ -1,0 +1,3 @@
+#  reclassify all R files as R:
+*.html linguist-language=RMarkdown
+*.Rmd linguist-language=RMarkdown
